@@ -140,7 +140,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
-        print('Eppoch '+str(i+1))
+        print('\nEpoch '+str(i+1))
         for b in range(math.ceil(train_samples//batch)):
             m.train()
             opt.zero_grad()

@@ -3,7 +3,7 @@ from itertools import combinations
 from hashlib import sha1
 from sentence_transformers import SentenceTransformer
 import torch
-torch.manual_seed(42)
+torch.manual_seed(100)
 
 class InputClusterDatasetBuilder:
     '''

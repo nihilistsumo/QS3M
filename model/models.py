@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 import pickle
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics.pairwise import euclidean_distances
 import argparse
 import math
 import time
@@ -92,9 +93,12 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:,768:768*2], X_test[:,768*2:])
-        print(y_cos)
         cos_auc = roc_auc_score(y_test, y_cos)
         print('Test cosine auc: '+str(cos_auc))
+        y_euclid = euclidean_distances(X_test[:,768:768*2], X_test[:,768*2:])
+        y_euclid = (y_euclid-np.min(y_euclid))/(np.max(y_euclid)-np.min(y_euclid))
+        euclid_auc = roc_auc_score(y_test, y_euclid)
+        print('Test euclidean auc: '+str(euclid_auc))
 
         val_split_ratio = 0.1
         val_sample_size = int(X_train.shape[0] * val_split_ratio)

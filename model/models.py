@@ -161,7 +161,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     ypred_test = m(X_test)
     test_loss = mseloss(ypred_test, y_test)
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-    print('Test loss: '+str(test_loss)+', Test auc: '+str(test_auc))
+    print('\n\nTest loss: '+str(test_loss)+', Test auc: '+str(test_auc))
 
     if save:
         torch.save(m.state_dict(), 'saved_models/'+time.strftime('%b-%d-%Y_%H%M', time.localtime())+'.model')

@@ -155,7 +155,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
                 ypred_val = m(X_val)
                 val_loss = mseloss(ypred_val, y_val)
                 val_auc = roc_auc_score(y_val.detach().cpu().numpy(), ypred_val.detach().cpu().numpy())
-                print('Train loss: %.5f, Train auc: %.5f, Val loss: %.5f, Val auc: %.5f' %
+                print('\rTrain loss: %.5f, Train auc: %.5f, Val loss: %.5f, Val auc: %.5f' %
                       (loss.item(), auc, val_loss.item(), val_auc), end='')
     m.eval()
     ypred_test = m(X_test)

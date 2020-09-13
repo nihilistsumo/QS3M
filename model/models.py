@@ -91,15 +91,6 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
         X_test, y_test = test_data_builder.build_input_data()
 
-        cos = nn.CosineSimilarity(dim=1, eps=1e-6)
-        y_cos = cos(X_test[:,768:768*2], X_test[:,768*2:])
-        cos_auc = roc_auc_score(y_test, y_cos)
-        print('Test cosine auc: '+str(cos_auc))
-        y_euclid = euclidean_distances(X_test[:,768:768*2], X_test[:,768*2:])
-        y_euclid = (y_euclid-np.min(y_euclid))/(np.max(y_euclid)-np.min(y_euclid))
-        euclid_auc = roc_auc_score(y_test, y_euclid)
-        print('Test euclidean auc: '+str(euclid_auc))
-
         val_split_ratio = 0.1
         val_sample_size = int(X_train.shape[0] * val_split_ratio)
 
@@ -126,6 +117,16 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         torch.cuda.set_device(torch.device('cuda:0'))
     else:
         torch.cuda.set_device(torch.device('cpu'))
+
+    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+    y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
+    cos_auc = roc_auc_score(y_test, y_cos)
+    print('Test cosine auc: ' + str(cos_auc))
+    y_euclid = euclidean_distances(X_test[:, 768:768 * 2], X_test[:, 768 * 2:]).diagonal()
+    y_euclid = (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+    euclid_auc = roc_auc_score(y_test, y_euclid)
+    print('Test euclidean auc: ' + str(euclid_auc))
+
     train_samples = X_train.shape[0]
     X_train = X_train.cuda()
     y_train = y_train.cuda()

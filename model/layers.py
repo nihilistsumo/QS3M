@@ -88,8 +88,8 @@ class CATS_QueryScaler(nn.Module):
         super(CATS_QueryScaler, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
-        self.LL2 = nn.Linear(6 * emb_size, 1)
-        self.A = torch.tensor(torch.randn(emb_size), requires_grad=True)
+        self.LL2 = nn.Linear(5 * emb_size, 1)
+        self.A = torch.tensor(torch.randn(emb_size), requires_grad=True).cuda()
 
     def forward(self, X):
         '''
@@ -109,7 +109,7 @@ class CATS_QueryScaler(nn.Module):
         self.zd = torch.abs(self.zp1a - self.zp2a)
         self.zdqp1 = torch.abs(self.zp1a - self.zqla)
         self.zdqp2 = torch.abs(self.zp2a - self.zqla)
-        self.z = torch.cat((self.zqla, self.zp1a, self.zp2a, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        self.z = torch.cat((self.zp1a, self.zp2a, self.zd, self.zdqp1, self.zdqp2), dim=1)
         o = torch.relu(self.LL2(self.z))
         o = o.reshape(-1)
         return o

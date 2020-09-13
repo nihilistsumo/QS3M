@@ -186,10 +186,11 @@ def main():
     parser.add_argument('--save', action='store_true')
 
     args = parser.parse_args()
+    dat = args.data_dir
 
-    run_model(args.qry_attn_train, args.qry_attn_test, args.train_pids, args.test_pids, args.train_pvecs,
-              args.test_pvecs, args.train_qids, args.test_qids, args.train_qvecs, args.test_qvecs, args.cache,
-              args.lrate, args.batch, args.epochs, args.save)
+    run_model(dat+args.qry_attn_train, dat+args.qry_attn_test, dat+args.train_pids, dat+args.test_pids, dat+args.train_pvecs,
+              dat+args.test_pvecs, dat+args.train_qids, dat+args.test_qids, dat+args.train_qvecs, dat+args.test_qvecs,
+              args.cache, args.lrate, args.batch, args.epochs, args.save)
 
 
 if __name__ == '__main__':

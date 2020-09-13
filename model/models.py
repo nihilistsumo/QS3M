@@ -1,9 +1,12 @@
 from model.layers import CATS, CATS_Scaled, CATS_QueryScaler
 from data.utils import InputCATSDatasetBuilder
 import torch
+torch.manual_seed(42)
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+from numpy.random import seed
+seed(42)
 import tensorflow as tf
 import pickle
 from sklearn.metrics import roc_auc_score

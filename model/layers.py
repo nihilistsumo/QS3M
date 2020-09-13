@@ -1,13 +1,13 @@
 import torch
+torch.manual_seed(42)
 import torch.nn as nn
-import numpy as np
 
 class CATS(nn.Module):
     def __init__(self, emb_size):
         super(CATS, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
-        self.LL2 = nn.Linear(3 * emb_size, 1)
+        self.LL2 = nn.Linear(5 * emb_size, 1)
 
     def forward(self, X):
         '''
@@ -27,7 +27,7 @@ class CATS(nn.Module):
         self.zd = torch.abs(self.zp1 - self.zp2)
         self.zdqp1 = torch.abs(self.zp1 - self.zql)
         self.zdqp2 = torch.abs(self.zp2 - self.zql)
-        self.z = torch.cat((self.zd, self.zdqp1, self.zdqp2), dim=1)
+        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
         o = torch.relu(self.LL2(self.z))
         o = o.reshape(-1)
         return o

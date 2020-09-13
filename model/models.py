@@ -1,7 +1,7 @@
 from model.layers import CATS, CATS_Scaled, CATS_QueryScaler
 from data.utils import InputCATSDatasetBuilder
 import torch
-torch.manual_seed(100)
+torch.manual_seed(420)
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np

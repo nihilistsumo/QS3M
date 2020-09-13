@@ -7,6 +7,7 @@ class CATS(nn.Module):
         super(CATS, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
+        self.LLe = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(5 * emb_size, 1)
 
     def forward(self, X):
@@ -21,9 +22,9 @@ class CATS(nn.Module):
         self.z1 = torch.abs(self.Xp1 - self.Xq)
         self.z2 = torch.abs(self.Xp2 - self.Xq)
         self.zdiff = torch.abs(self.Xp1 - self.Xp2)
-        self.zp1 = torch.relu(self.LL1(self.Xp1))
-        self.zp2 = torch.relu(self.LL1(self.Xp2))
-        self.zql = torch.relu(self.LL1(self.Xq))
+        self.zp1 = torch.relu(self.LLe(self.LL1(self.Xp1)))
+        self.zp2 = torch.relu(self.LLe(self.LL1(self.Xp2)))
+        self.zql = torch.relu(self.LLe(self.LL1(self.Xq)))
         self.zd = torch.abs(self.zp1 - self.zp2)
         self.zdqp1 = torch.abs(self.zp1 - self.zql)
         self.zdqp2 = torch.abs(self.zp2 - self.zql)

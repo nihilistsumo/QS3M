@@ -48,7 +48,7 @@ class CATS_Scaled(nn.Module):
     def __init__(self, emb_size):
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size
-        self.LL1 = nn.Linear(6 * emb_size, 1)
+        self.LL1 = nn.Linear(5 * emb_size, 1)
         self.A = torch.tensor(torch.randn(emb_size), requires_grad=True)
 
     def forward(self, X):
@@ -66,7 +66,7 @@ class CATS_Scaled(nn.Module):
         self.zd = torch.abs(self.zp1 - self.zp2)
         self.zdqp1 = torch.abs(self.zp1 - self.zql)
         self.zdqp2 = torch.abs(self.zp2 - self.zql)
-        self.z = torch.cat((self.zql, self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
         o = torch.relu(self.LL1(self.z))
         o = o.reshape(-1)
         return o

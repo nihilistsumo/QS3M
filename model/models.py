@@ -47,7 +47,7 @@ class SimilarityClusteringModel(nn.Module):
 class CATSSimilarityModel(nn.Module):
     def __init__(self, emb_size):
         super(CATSSimilarityModel, self).__init__()
-        self.cats = CATS(emb_size)
+        self.cats = CATS_Scaled(emb_size)
 
     def forward(self, X):
         self.pair_scores = self.cats(X)
@@ -166,7 +166,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     ypred_test = m(X_test)
     test_loss = mseloss(ypred_test, y_test)
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-    print('\n\nTest loss: '+str(test_loss)+', Test auc: '+str(test_auc))
+    print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
 
     if save:
         torch.save(m.state_dict(), 'saved_models/'+time.strftime('%b-%d-%Y_%H%M', time.localtime())+'.model')

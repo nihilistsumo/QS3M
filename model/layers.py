@@ -154,7 +154,7 @@ class CATS_manhattan(nn.Module):
         self.zdqp2 = torch.abs(self.zp2 - self.zql)
         self.p1tr = torch.cat((self.zp1, self.zdqp1), dim=1)
         self.p2tr = torch.cat((self.zp2, self.zdqp2), dim=1)
-        o = torch.exp(-torch.abs(self.p1tr-self.p2tr))
+        o = torch.exp(-torch.sum(torch.abs(self.p1tr-self.p2tr), dim=1))
         o = o.reshape(-1)
         return o
 

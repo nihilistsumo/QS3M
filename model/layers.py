@@ -128,7 +128,7 @@ class CATS_QueryScaler(nn.Module):
 
 class CATS_manhattan(nn.Module):
     def __init__(self, emb_size):
-        super(CATS, self).__init__()
+        super(CATS_manhattan, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)

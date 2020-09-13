@@ -50,7 +50,7 @@ class SimilarityClusteringModel(nn.Module):
 class CATSSimilarityModel(nn.Module):
     def __init__(self, emb_size):
         super(CATSSimilarityModel, self).__init__()
-        self.cats = CATS_manhattan(emb_size)
+        self.cats = CATS_QueryScaler(emb_size)
 
     def forward(self, X):
         self.pair_scores = self.cats(X)

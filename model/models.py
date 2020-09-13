@@ -145,8 +145,9 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
             m.train()
             opt.zero_grad()
             ypred = m(X_train[b*batch:b*batch + batch])
-            loss = mseloss(ypred, y_train[b*batch:b*batch + batch])
-            auc = roc_auc_score(y_train.detach().cpu().numpy(), ypred.detach().cpu().numpy())
+            y_train_curr = y_train[b*batch:b*batch + batch]
+            loss = mseloss(ypred, y_train_curr)
+            auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
             loss.backward()
             opt.step()
             if b % 10 == 0:

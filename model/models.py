@@ -123,7 +123,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     cos_auc = roc_auc_score(y_test, y_cos)
     print('Test cosine auc: ' + str(cos_auc))
     y_euclid = euclidean_distances(X_test[:, 768:768 * 2], X_test[:, 768 * 2:]).diagonal()
-    y_euclid = (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+    y_euclid = 1-(y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
     print('Test euclidean auc: ' + str(euclid_auc))
 

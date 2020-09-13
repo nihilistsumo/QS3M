@@ -1,5 +1,5 @@
 import torch
-torch.manual_seed(420)
+torch.manual_seed(42)
 import torch.nn as nn
 
 class CATS(nn.Module):

@@ -49,7 +49,7 @@ class CATS_Scaled(nn.Module):
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(5 * emb_size, 1)
-        self.A = torch.tensor(torch.randn(emb_size), requires_grad=True)
+        self.A = torch.tensor(torch.randn(emb_size), requires_grad=True).cuda()
 
     def forward(self, X):
         '''

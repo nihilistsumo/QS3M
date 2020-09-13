@@ -1,4 +1,4 @@
-from model.layers import CATS, CATS_Scaled, CATS_QueryScaler
+from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
 from data.utils import InputCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -50,7 +50,7 @@ class SimilarityClusteringModel(nn.Module):
 class CATSSimilarityModel(nn.Module):
     def __init__(self, emb_size):
         super(CATSSimilarityModel, self).__init__()
-        self.cats = CATS(emb_size)
+        self.cats = CATS_manhattan(emb_size)
 
     def forward(self, X):
         self.pair_scores = self.cats(X)

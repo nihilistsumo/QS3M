@@ -92,6 +92,7 @@ class CATS_QueryScaler(nn.Module):
         self.LL2 = nn.Linear(emb_size, emb_size)
         self.LL3 = nn.Linear(5 * emb_size, 1)
         self.A = torch.tensor(torch.randn(emb_size), requires_grad=True).cuda()
+        self.cos = nn.CosineSimilarity()
 
     def forward(self, X):
         '''
@@ -102,17 +103,10 @@ class CATS_QueryScaler(nn.Module):
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
         self.Xp2 = X[:, 2 * self.emb_size:]
-        self.zp1 = torch.relu(self.LL2(self.LL1(self.Xp1)))
-        self.zp2 = torch.relu(self.LL2(self.LL1(self.Xp2)))
-        self.zql = torch.relu(self.LL2(self.LL1(self.Xq)))
-        self.zp1a = torch.mul(self.zp1, self.A)
-        self.zp2a = torch.mul(self.zp2, self.A)
-        self.zqla = torch.mul(self.zql, self.A)
-        self.zd = torch.abs(self.zp1a - self.zp2a)
-        self.zdqp1 = torch.abs(self.zp1a - self.zqla)
-        self.zdqp2 = torch.abs(self.zp2a - self.zqla)
-        self.z = torch.cat((self.zp1a, self.zp2a, self.zd, self.zdqp1, self.zdqp2), dim=1)
-        o = torch.relu(self.LL3(self.z))
+        self.zql = torch.mul(self.Xq, self.A)
+        self.zp1 = torch.mul(self.zql, self.Xp1)
+        self.zp2 = torch.mul(self.zql, self.Xp2)
+        o = self.cos(self.zp1, self.zp2)
         o = o.reshape(-1)
         return o
 

@@ -91,7 +91,8 @@ class CATS_QueryScaler(nn.Module):
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
         self.LL3 = nn.Linear(5 * emb_size, 1)
-        #self.cos = nn.CosineSimilarity()
+        self.cos = nn.CosineSimilarity()
+        self.pdist = nn.PairwiseDistance(p=2)
 
     def forward(self, X):
         '''
@@ -105,7 +106,7 @@ class CATS_QueryScaler(nn.Module):
         self.zql = torch.relu(self.LL2(self.LL1(self.Xq)))
         self.zp1 = torch.mul(self.zql, self.Xp1)
         self.zp2 = torch.mul(self.zql, self.Xp2)
-        o = 1-torch.cdist(self.zp1, self.zp2, p=2)
+        o = 1-self.pdist(self.zp1, self.zp2)
         o = o.reshape(-1)
         return o
 

@@ -146,7 +146,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     m = CATSSimilarityModel(768).cuda()
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
-    test_loss = mseloss(torch.tensor([1.0], torch.tensor([0.0])))
+    test_loss = mseloss(torch.tensor([1.0]), torch.tensor([0.0]))
     test_auc = 0.0
     for i in range(epochs):
         print('\nEpoch '+str(i+1))

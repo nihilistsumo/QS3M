@@ -23,7 +23,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
         model = CATS_QueryScaler(768)
     else:
         print('Wrong model type')
-    model.load_state_dict(model_path)
+    model.load_state_dict(torch.load(model_path))
     model.eval()
     if not use_cache:
         qry_attn_ts = []

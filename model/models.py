@@ -131,8 +131,10 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     print('Test euclidean auc: ' + str(euclid_auc))
 
     train_samples = X_train.shape[0]
+    '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()
+    '''
     X_val = X_val.cuda()
     y_val = y_val.cuda()
     X_test = X_test.cuda()
@@ -147,8 +149,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         for b in range(math.ceil(train_samples//batch)):
             m.train()
             opt.zero_grad()
-            ypred = m(X_train[b*batch:b*batch + batch])
-            y_train_curr = y_train[b*batch:b*batch + batch]
+            ypred = m(X_train[b*batch:b*batch + batch].cuda())
+            y_train_curr = y_train[b*batch:b*batch + batch].cuda()
             loss = mseloss(ypred, y_train_curr)
             auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
             loss.backward()

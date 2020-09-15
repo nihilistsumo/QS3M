@@ -1,4 +1,5 @@
 from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
+from model.models import CATSSimilarityModel
 from data.utils import InputCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -17,10 +18,11 @@ import time
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, use_cache):
+    model = CATSSimilarityModel(768)
     if model_type == 'triam':
-        model = CATS(768)
+        model.cats = CATS(768)
     elif model_type == 'qscale':
-        model = CATS_QueryScaler(768)
+        model.cats = CATS_QueryScaler(768)
     else:
         print('Wrong model type')
     model.load_state_dict(torch.load(model_path))

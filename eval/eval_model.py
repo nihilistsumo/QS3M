@@ -18,9 +18,9 @@ import time
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, use_cache):
     if model_type == 'triam':
-        model = CATS()
+        model = CATS(768)
     elif model_type == 'qscale':
-        model = CATS_QueryScaler
+        model = CATS_QueryScaler(768)
     else:
         print('Wrong model type')
     model.load_state_dict(model_path)

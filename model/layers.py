@@ -91,8 +91,8 @@ class CATS_QueryScaler(nn.Module):
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
         self.LL3 = nn.Linear(5 * emb_size, 1)
-        scaler = torch.randn(emb_size)
-        self.A = scaler.clone().detach().requires_grad_(True).cuda()
+        scaler = torch.randn(emb_size, requires_grad=True)
+        self.A = scaler.clone().detach().cuda()
         self.cos = nn.CosineSimilarity()
 
     def forward(self, X):

@@ -155,7 +155,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
             auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
             loss.backward()
             opt.step()
-            if b % 10 == 0:
+            if b % 100 == 0:
                 m.eval()
                 m.cpu()
                 ypred_val = m(X_val)

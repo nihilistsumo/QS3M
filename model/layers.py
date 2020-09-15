@@ -103,7 +103,7 @@ class CATS_QueryScaler(nn.Module):
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
         self.Xp2 = X[:, 2 * self.emb_size:]
-        self.zql = torch.relu(self.LL3(self.LL2(self.LL1(self.Xq))))
+        self.zql = torch.relu(self.LL2(self.LL1(self.Xq)))
         self.zp1 = torch.mul(self.zql, self.Xp1)
         self.zp2 = torch.mul(self.zql, self.Xp2)
         o = self.cos(self.zp1, self.zp2)

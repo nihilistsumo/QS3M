@@ -140,12 +140,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
 
 
     m = CATSSimilarityModel(768).cuda()
-    if hasattr(m.cats, 'A'):
-        params = [m.cats.A]
-        params += list(m.parameters())
-        opt = optim.Adam(params, lr=lrate)
-    else:
-        opt = optim.Adam(m.parameters(), lr=lrate)
+    opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
         print('\nEpoch '+str(i+1))

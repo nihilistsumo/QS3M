@@ -135,12 +135,11 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()
-    '''
     X_val = X_val.cuda()
     y_val = y_val.cuda()
     X_test = X_test.cuda()
     y_test = y_test.cuda()
-
+    '''
 
     m = CATSSimilarityModel(768).cuda()
     opt = optim.Adam(m.parameters(), lr=lrate)
@@ -158,16 +157,18 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
             opt.step()
             if b % 10 == 0:
                 m.eval()
+                m.cpu()
                 ypred_val = m(X_val)
                 val_loss = mseloss(ypred_val, y_val)
-                val_auc = roc_auc_score(y_val.detach().cpu().numpy(), ypred_val.detach().cpu().numpy())
+                val_auc = roc_auc_score(y_val, ypred_val)
 
                 ypred_test = m(X_test)
                 test_loss = mseloss(ypred_test, y_test)
-                test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+                test_auc = roc_auc_score(y_test, ypred_test)
 
                 print('\rTrain loss: %.5f, Train auc: %.5f, Val loss: %.5f, Val auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
                       (loss.item(), auc, val_loss.item(), val_auc, test_loss.item(), test_auc), end='')
+                m.cuda()
     m.eval()
     ypred_test = m(X_test)
     test_loss = mseloss(ypred_test, y_test)

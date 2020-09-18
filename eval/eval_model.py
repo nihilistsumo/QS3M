@@ -60,7 +60,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
     cos_auc = roc_auc_score(y_test, y_cos)
     print('Test cosine auc: ' + str(cos_auc))
-    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:])**2, 1))
+    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:])**2, 1)).numpy()
     y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
     print('Test euclidean auc: ' + str(euclid_auc))

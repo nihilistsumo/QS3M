@@ -74,7 +74,7 @@ def main():
     parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="triam")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/CATS/saved_models/cats_2triamese_layer_b32_l0.00001_i5.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/CATS/saved_models/cats_2triamese_layer_b32_l0.00001_i7.model")
     parser.add_argument('--cache', action='store_true')
 
     args = parser.parse_args()

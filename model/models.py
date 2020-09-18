@@ -10,7 +10,6 @@ seed(42)
 import tensorflow as tf
 import pickle
 from sklearn.metrics import roc_auc_score
-from sklearn.metrics.pairwise import euclidean_distances
 import argparse
 import math
 import time
@@ -125,8 +124,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
     cos_auc = roc_auc_score(y_test, y_cos)
     print('Test cosine auc: ' + str(cos_auc))
-    y_euclid = euclidean_distances(X_test[:, 768:768 * 2], X_test[:, 768 * 2:]).diagonal()
-    y_euclid = 1-(y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
+    y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
     print('Test euclidean auc: ' + str(euclid_auc))
 

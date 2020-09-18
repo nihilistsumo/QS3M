@@ -60,7 +60,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn.tsv")
+    parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-tp', '--test_pids', default="by1test-allpos-for-eval-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-allpos-for-eval-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
@@ -72,8 +72,8 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    eval_cluster(args.model_path, args.model_type, args.qry_attn_test, args.test_pids, args.test_pvecs, args.test_qids,
-                 args.test_qvecs, args.cache)
+    eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
+                 dat+args.test_qvecs, args.cache)
 
 if __name__ == '__main__':
     main()

@@ -57,6 +57,15 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
     print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
 
+    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+    y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
+    cos_auc = roc_auc_score(y_test, y_cos)
+    print('Test cosine auc: ' + str(cos_auc))
+    y_euclid = euclidean_distances(X_test[:, 768:768 * 2], X_test[:, 768 * 2:]).diagonal()
+    y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+    euclid_auc = roc_auc_score(y_test, y_euclid)
+    print('Test euclidean auc: ' + str(euclid_auc))
+
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

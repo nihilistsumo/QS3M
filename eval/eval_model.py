@@ -86,7 +86,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
         pair_scores = model(X_page)
         # norm needed?
         pair_score_dict = {}
-        for i in range(parapairs):
+        for i in range(len(parapairs)):
             pair_score_dict[parapairs[i]] = pair_scores[i].item()
         dist_mat = []
         for i in range(len(paralist)):

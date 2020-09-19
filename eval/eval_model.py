@@ -122,7 +122,7 @@ def main():
     dat = args.data_dir
 
     eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
-                 dat+args.test_qvecs. args.art_qrels, args.hier_qrels)
+                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels)
 
 if __name__ == '__main__':
     main()

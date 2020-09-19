@@ -76,7 +76,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_ari_score = {}
     for page in page_paras.keys():
         print('Going to cluster '+page)
-        qid = sha1(str.encode(page)).hexdigest()
+        qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         paralist = page_paras[page]
         true_labels = []
         for i in range(len(paralist)):

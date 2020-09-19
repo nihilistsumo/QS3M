@@ -109,19 +109,20 @@ def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
     parser.add_argument('-tp', '--test_pids', default="by1test-allpos-for-eval-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-allpos-for-eval-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="triam")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/CATS/saved_models/cats_2triamese_layer_b32_l0.00001_i7.model")
-    parser.add_argument('--cache', action='store_true')
 
     args = parser.parse_args()
     dat = args.data_dir
 
     eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
-                 dat+args.test_qvecs, args.cache)
+                 dat+args.test_qvecs. args.art_qrels, args.hier_qrels)
 
 if __name__ == '__main__':
     main()

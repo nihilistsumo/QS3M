@@ -1,6 +1,6 @@
 from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
 from model.models import CATSSimilarityModel
-from data.utils import InputCATSDatasetBuilder
+from data.utils import InputCATSDatasetBuilder, read_art_qrels
 import torch
 torch.manual_seed(42)
 import torch.nn as nn
@@ -8,15 +8,15 @@ import torch.optim as optim
 import numpy as np
 from numpy.random import seed
 seed(42)
-import tensorflow as tf
-import pickle
-from sklearn.metrics import roc_auc_score
+from hashlib import sha1
+from sklearn.metrics import roc_auc_score, adjusted_rand_score
+from sklearn.cluster import AgglomerativeClustering
 import argparse
 import math
 import time
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, use_cache):
+                 test_qvecs_file, article_qrels, top_qrels):
     model = CATSSimilarityModel(768)
     if model_type == 'triam':
         model.cats = CATS(768)
@@ -26,28 +26,21 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
         print('Wrong model type')
     model.load_state_dict(torch.load(model_path))
     model.eval()
-    if not use_cache:
-        qry_attn_ts = []
-        with open(qry_attn_file_test, 'r') as tsf:
-            f = True
-            for l in tsf:
-                if f:
-                    f = False
-                    continue
-                qry_attn_ts.append(l.split('\t'))
-        test_pids = np.load(test_pids_file)
-        test_pvecs = np.load(test_pvecs_file)
-        test_qids = np.load(test_qids_file)
-        test_qvecs = np.load(test_qvecs_file)
+    qry_attn_ts = []
+    with open(qry_attn_file_test, 'r') as tsf:
+        f = True
+        for l in tsf:
+            if f:
+                f = False
+                continue
+            qry_attn_ts.append(l.split('\t'))
+    test_pids = np.load(test_pids_file)
+    test_pvecs = np.load(test_pvecs_file)
+    test_qids = np.load(test_qids_file)
+    test_qvecs = np.load(test_qvecs_file)
 
-        test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
-        X_test, y_test = test_data_builder.build_input_data()
-
-        np.save('cache/X_test.npy', X_test)
-        np.save('cache/y_test.npy', y_test)
-    else:
-        X_test = torch.tensor(np.load('cache/X_test.npy'))
-        y_test = torch.tensor(np.load('cache/y_test.npy'))
+    test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+    X_test, y_test = test_data_builder.build_input_data()
 
     model.cpu()
     ypred_test = model(X_test)
@@ -64,6 +57,53 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
     print('Test euclidean auc: ' + str(euclid_auc))
+
+    page_paras = read_art_qrels(article_qrels)
+    para_labels = {}
+    with open(top_qrels, 'r') as f:
+        for l in f:
+            para = l.split(' ')[2]
+            sec = l.split(' ')[0]
+            para_labels[para] = sec
+    page_num_sections = {}
+    for page in page_paras.keys():
+        paras = page_paras[page]
+        sec = set()
+        for p in paras:
+            sec.add(para_labels[p])
+        page_num_sections[page] = len(sec)
+
+    pagewise_ari_score = {}
+    for page in page_paras.keys():
+        print('Going to cluster '+page)
+        qid = sha1(str.encode(page)).hexdigest()
+        paralist = page_paras[page]
+        true_labels = []
+        for i in range(len(paralist)):
+            true_labels.append(para_labels[paralist[i]])
+        X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
+        pair_scores = model(X_page)
+        # norm needed?
+        pair_score_dict = {}
+        for i in range(parapairs):
+            pair_score_dict[parapairs[i]] = pair_scores[i].item()
+        dist_mat = []
+        for i in range(len(paralist)):
+            r = []
+            for j in range(len(paralist)):
+                if i == j:
+                    r.append(0.0)
+                elif paralist[i]+'_'+paralist[j] in parapairs:
+                    r.append(pair_score_dict[paralist[i ]+ '_' + paralist[j]])
+                else:
+                    r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
+            dist_mat.append(r)
+        cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
+        cl_labels = cl.fit_predict(dist_mat)
+        ari_score = adjusted_rand_score(true_labels, cl_labels)
+        print(page+' ARI score: '+str(ari_score))
+        pagewise_ari_score[page] = ari_score
+    print('Mean ARI score: '+str(np.mean(np.array(pagewise_ari_score.values()))))
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')

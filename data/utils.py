@@ -107,6 +107,22 @@ class InputCATSDatasetBuilder:
         print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
         return X, y
 
+    def build_cluster_data(self, qid, paralist):
+        X = []
+        if qid not in self.query_vecs.keys():
+            print(qid+' not present in query vecs dict')
+        parapairs = []
+        for i in range(len(paralist)-1):
+            for j in range(i+1, len(paralist)):
+                p1 = paralist[i]
+                p2 = paralist[j]
+                row = np.hstack((self.query_vecs[qid], self.para_vecs[p1], self.para_vecs[p2]))
+                X.append(row)
+                parapairs.append(p1+'_'+p2)
+        X = torch.tensor(X)
+        print(qid+' X shape: '+str(X.shape))
+        return X, parapairs
+
 
 def query_embedder(query_list, embedding_model):
     query_embed = {}
@@ -133,3 +149,15 @@ def rewrite_qry_attn_with_qryID(old_qry_attn_file, output_file):
     with open(output_file, 'w') as out:
         for l in lines:
             out.write(l)
+
+def read_art_qrels(art_qrels):
+    page_paras = {}
+    with open(art_qrels, 'r') as f:
+        for l in f:
+            q = l.split(' ')[0]
+            p = l.split(' ')[2]
+            if q not in page_paras.keys():
+                page_paras[q] = [p]
+            else:
+                page_paras[q].append(p)
+    return page_paras

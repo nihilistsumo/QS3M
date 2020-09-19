@@ -115,6 +115,7 @@ class InputCATSDatasetBuilder:
         X = []
         if qid not in self.query_vecs.keys():
             print(qid+' not present in query vecs dict')
+            return None
         parapairs = []
         for i in range(len(paralist)-1):
             for j in range(i+1, len(paralist)):

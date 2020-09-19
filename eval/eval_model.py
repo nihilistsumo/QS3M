@@ -77,33 +77,36 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     for page in page_paras.keys():
         print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
-        paralist = page_paras[page]
+        if qid not in test_data_builder.query_vecs.keys():
+            print(qid + ' not present in query vecs dict')
+        else:
+            paralist = page_paras[page]
 
-        true_labels = []
-        for i in range(len(paralist)):
-            true_labels.append(para_labels[paralist[i]])
-        X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
-        pair_scores = model(X_page)
-        pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
-        pair_score_dict = {}
-        for i in range(len(parapairs)):
-            pair_score_dict[parapairs[i]] = 1-pair_scores[i].item()
-        dist_mat = []
-        for i in range(len(paralist)):
-            r = []
-            for j in range(len(paralist)):
-                if i == j:
-                    r.append(0.0)
-                elif paralist[i]+'_'+paralist[j] in parapairs:
-                    r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
-                else:
-                    r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
-            dist_mat.append(r)
-        cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
-        cl_labels = cl.fit_predict(dist_mat)
-        ari_score = adjusted_rand_score(true_labels, cl_labels)
-        print(page+' ARI score: '+str(ari_score))
-        pagewise_ari_score[page] = ari_score
+            true_labels = []
+            for i in range(len(paralist)):
+                true_labels.append(para_labels[paralist[i]])
+            X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
+            pair_scores = model(X_page)
+            pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
+            pair_score_dict = {}
+            for i in range(len(parapairs)):
+                pair_score_dict[parapairs[i]] = 1-pair_scores[i].item()
+            dist_mat = []
+            for i in range(len(paralist)):
+                r = []
+                for j in range(len(paralist)):
+                    if i == j:
+                        r.append(0.0)
+                    elif paralist[i]+'_'+paralist[j] in parapairs:
+                        r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
+                    else:
+                        r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
+                dist_mat.append(r)
+            cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
+            cl_labels = cl.fit_predict(dist_mat)
+            ari_score = adjusted_rand_score(true_labels, cl_labels)
+            print(page+' ARI score: '+str(ari_score))
+            pagewise_ari_score[page] = ari_score
     print('Mean ARI score: '+str(np.mean(np.array(pagewise_ari_score.values()))))
 
 def main():

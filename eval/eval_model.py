@@ -74,6 +74,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
         page_num_sections[page] = len(sec)
 
     pagewise_ari_score = {}
+    pagewise_base_ari_score = {}
     for page in page_paras.keys():
         print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
@@ -86,28 +87,42 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
             X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
+            pair_baseline_scores = cos(X_page[:, 768:768 * 2], X_page[:, 768 * 2:])
             pair_scores = model(X_page)
             pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
+            pair_baseline_scores = (pair_baseline_scores - torch.min(pair_baseline_scores)) / (torch.max(pair_baseline_scores) - torch.min(pair_baseline_scores))
             pair_score_dict = {}
+            pair_baseline_score_dict = {}
             for i in range(len(parapairs)):
                 pair_score_dict[parapairs[i]] = 1-pair_scores[i].item()
+                pair_baseline_score_dict[parapairs[i]] = 1-pair_scores[i]
             dist_mat = []
+            dist_base_mat = []
             for i in range(len(paralist)):
                 r = []
+                rbase = []
                 for j in range(len(paralist)):
                     if i == j:
                         r.append(0.0)
+                        rbase.append(0.0)
                     elif paralist[i]+'_'+paralist[j] in parapairs:
                         r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
+                        rbase.append(pair_baseline_score_dict[paralist[i]+ '_' + paralist[j]])
                     else:
                         r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
+                        rbase.append(pair_baseline_score_dict[paralist[j] + '_' + paralist[i]])
                 dist_mat.append(r)
+                dist_base_mat.append(rbase)
             cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
             cl_labels = cl.fit_predict(dist_mat)
+            cl_base_labels = cl.fit_predict(dist_base_mat)
             ari_score = adjusted_rand_score(true_labels, cl_labels)
-            print(page+' ARI score: '+str(ari_score))
+            ari_base_score = adjusted_rand_score(true_labels, cl_base_labels)
+            print(page+' ARI score: '+str(ari_score), ', Baseline score: '+str(ari_base_score))
             pagewise_ari_score[page] = ari_score
+            pagewise_base_ari_score[page] = ari_base_score
     print('Mean ARI score: '+str(np.mean(np.array(list(pagewise_ari_score.values())))))
+    print('Mean Baseline ARI score: ' + str(np.mean(np.array(list(pagewise_base_ari_score.values())))))
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')

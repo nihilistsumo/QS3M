@@ -107,7 +107,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             print(page+' ARI score: '+str(ari_score))
             pagewise_ari_score[page] = ari_score
-    print('Mean ARI score: '+str(np.mean(np.array(pagewise_ari_score.values()))))
+    print('Mean ARI score: '+str(np.mean(np.array(list(pagewise_ari_score.values())))))
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')

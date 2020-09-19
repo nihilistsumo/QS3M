@@ -78,6 +78,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
         print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         paralist = page_paras[page]
+
         true_labels = []
         for i in range(len(paralist)):
             true_labels.append(para_labels[paralist[i]])
@@ -94,7 +95,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 if i == j:
                     r.append(0.0)
                 elif paralist[i]+'_'+paralist[j] in parapairs:
-                    r.append(pair_score_dict[paralist[i ]+ '_' + paralist[j]])
+                    r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
                 else:
                     r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
             dist_mat.append(r)

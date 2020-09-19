@@ -63,15 +63,16 @@ class InputCATSDatasetBuilder:
             querylist.append(data[0])
             paralist.append(data[1])
             paralist.append(data[2])
-        paraids = list(paraids_npy)
-        assert set(paralist).issubset(set(paraids)) is True
+        self.paraids = list(paraids_npy)
+        self.paravecs_npy = paravecs_npy
+        assert set(paralist).issubset(set(self.paraids)) is True
         queries = list(queryids_npy)
         self.query_attn_data = query_attn_data
         paralist = list(set(paralist))
         querylist = list(set(querylist))
         self.para_vecs = {}
         paraids_dict = {}
-        for i, para in enumerate(paraids):
+        for i, para in enumerate(self.paraids):
             paraids_dict[para] = i
         queries_dict = {}
         for i, q in enumerate(queries):
@@ -108,6 +109,9 @@ class InputCATSDatasetBuilder:
         return X, y
 
     def build_cluster_data(self, qid, paralist):
+        all_para_vec_dict = {}
+        for i, para in enumerate(self.paraids):
+            all_para_vec_dict[para] = self.paravecs_npy[i]
         X = []
         if qid not in self.query_vecs.keys():
             print(qid+' not present in query vecs dict')
@@ -116,7 +120,7 @@ class InputCATSDatasetBuilder:
             for j in range(i+1, len(paralist)):
                 p1 = paralist[i]
                 p2 = paralist[j]
-                row = np.hstack((self.query_vecs[qid], self.para_vecs[p1], self.para_vecs[p2]))
+                row = np.hstack((self.query_vecs[qid], all_para_vec_dict[p1], all_para_vec_dict[p2]))
                 X.append(row)
                 parapairs.append(p1+'_'+p2)
         X = torch.tensor(X)

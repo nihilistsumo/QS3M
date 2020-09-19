@@ -84,7 +84,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             true_labels.append(para_labels[paralist[i]])
         X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
         pair_scores = model(X_page)
-        pair_scores = 1-(pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
+        pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
         pair_score_dict = {}
         for i in range(len(parapairs)):
             pair_score_dict[parapairs[i]] = 1-pair_scores[i].item()

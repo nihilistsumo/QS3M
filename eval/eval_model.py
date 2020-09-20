@@ -137,7 +137,7 @@ def main():
     parser.add_argument('-tq', '--test_qids', default="by2test-context-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="triam")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_2triamese_layer_b32_l0.00001_i7.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_2triamese_layer_b32_l0.00001_i5.model")
 
     args = parser.parse_args()
     dat = args.data_dir

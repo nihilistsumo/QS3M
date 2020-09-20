@@ -129,7 +129,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.article.nodup.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.toplevel.nodup.qrels")
     parser.add_argument('-tp', '--test_pids', default="by2test-all-pids.npy")

@@ -16,7 +16,7 @@ import math
 import time
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels):
+                 test_qvecs_file, article_qrels, top_qrels, by2test=False):
     model = CATSSimilarityModel(768)
     if model_type == 'triam':
         model.cats = CATS(768)
@@ -77,7 +77,10 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_base_ari_score = {}
     for page in page_paras.keys():
         print('Going to cluster '+page)
-        qid = 'Query:'+sha1(str.encode(page)).hexdigest()
+        if by2test:
+            qid = 'Query:' + sha1(str.encode(page.replace('%20', '%'))).hexdigest()
+        else:
+            qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         if qid not in test_data_builder.query_vecs.keys():
             print(qid + ' not present in query vecs dict')
         else:
@@ -143,7 +146,7 @@ def main():
     dat = args.data_dir
 
     eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
-                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels)
+                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels, True)
 
 if __name__ == '__main__':
     main()

@@ -10,7 +10,7 @@ from numpy.random import seed
 seed(42)
 from hashlib import sha1
 from sklearn.metrics import roc_auc_score, adjusted_rand_score
-from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering, DBSCAN
 import argparse
 import math
 import time
@@ -52,11 +52,11 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
     y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
     cos_auc = roc_auc_score(y_test, y_cos)
-    print('Test cosine auc: ' + str(cos_auc))
+    print('Test cosine auc: %.5f' % cos_auc)
     y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:])**2, 1)).numpy()
     y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
-    print('Test euclidean auc: ' + str(euclid_auc))
+    print('Test euclidean auc: %.5f' % euclid_auc)
 
     page_paras = read_art_qrels(article_qrels)
     para_labels = {}
@@ -113,16 +113,17 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                         rbase.append(pair_baseline_score_dict[paralist[j] + '_' + paralist[i]])
                 dist_mat.append(r)
                 dist_base_mat.append(rbase)
-            cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='single')
+            # cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
+            cl = DBSCAN(eps=0.5, min_samples=3)
             cl_labels = cl.fit_predict(dist_mat)
             cl_base_labels = cl.fit_predict(dist_base_mat)
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             ari_base_score = adjusted_rand_score(true_labels, cl_base_labels)
-            print(page+' ARI score: '+str(ari_score), ', Baseline score: '+str(ari_base_score))
+            print(page+' ARI score: %.5f, Baseline score: %.5f' % (ari_score, ari_base_score))
             pagewise_ari_score[page] = ari_score
             pagewise_base_ari_score[page] = ari_base_score
-    print('Mean ARI score: '+str(np.mean(np.array(list(pagewise_ari_score.values())))))
-    print('Mean Baseline ARI score: ' + str(np.mean(np.array(list(pagewise_base_ari_score.values())))))
+    print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
+    print('Mean Baseline ARI score: %.5f' % np.mean(np.array(list(pagewise_base_ari_score.values()))))
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')

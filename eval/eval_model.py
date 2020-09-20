@@ -78,7 +78,8 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     for page in page_paras.keys():
         print('Going to cluster '+page)
         if by2test:
-            qid = 'Query:' + sha1(str.encode(page.replace('%20', '%'))).hexdigest()
+            page = page.replace('%20', '%')
+            qid = 'Query:' + sha1(str.encode(page)).hexdigest()
         else:
             qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         if qid not in test_data_builder.query_vecs.keys():

@@ -114,7 +114,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 dist_mat.append(r)
                 dist_base_mat.append(rbase)
             # cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
-            cl = AgglomerativeClustering(n_clusters=4, affinity='precomputed', linkage='average')
+            cl = AgglomerativeClustering(n_clusters=6, affinity='precomputed', linkage='average')
             # cl = DBSCAN(eps=0.7, min_samples=3)
             cl_labels = cl.fit_predict(dist_mat)
             cl_base_labels = cl.fit_predict(dist_base_mat)

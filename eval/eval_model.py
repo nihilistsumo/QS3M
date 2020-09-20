@@ -77,11 +77,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_base_ari_score = {}
     for page in page_paras.keys():
         print('Going to cluster '+page)
-        if by2test:
-            page = page.replace('%20', '%')
-            qid = 'Query:' + sha1(str.encode(page)).hexdigest()
-        else:
-            qid = 'Query:'+sha1(str.encode(page)).hexdigest()
+        qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         if qid not in test_data_builder.query_vecs.keys():
             print(qid + ' not present in query vecs dict')
         else:

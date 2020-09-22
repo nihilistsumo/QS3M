@@ -44,6 +44,66 @@ class CATS(nn.Module):
         y_pred = self.forward(X_test)
         return y_pred
 
+class CATS_Attention(nn.Module):
+    def __init__(self, emb_size, n):
+        super(CATS_Attention, self).__init__()
+        self.emb_size = emb_size
+        self.n = n
+        self.LL1 = nn.Linear(emb_size, emb_size)
+        self.LL2 = nn.Linear(emb_size, emb_size)
+        self.LL3 = nn.Linear(5 * emb_size, 1)
+        self.Wa = torch.tensor(torch.randn(self.n, 2*emb_size), requires_grad=True).cuda()
+        self.va = torch.tensor(torch.randn(1,self.n), requires_grad=True).cuda()
+        self.tanh = nn.Tanh()
+
+    def forward(self, X):
+        '''
+
+        :param X: The input tensor is of shape (m X (3*vec size + 2) X N) where m = batch size, N = max seq len
+        extra two values in dim 1 are the valid bits for p1 and p2 in the current sample
+        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        '''
+        self.Xq = X[:, :self.emb_size, :]
+        self.Xp1 = X[:, self.emb_size:2 * self.emb_size+1, :]
+        self.Xp2 = X[:, 2 * self.emb_size+1:]
+        self.Xp1valid = self.Xp1[:, -1, :]
+        self.Xp2valid = self.Xp2[:, -1, :]
+        self.Xp1 = self.Xp1[:, :self.emb_size, :]
+        self.Xp2 = self.Xp2[:, :self.emb_size, :]
+        self.Xp1score = self.Xp1valid * (
+            torch.mm(self.va, self.tanh(torch.mm(self.Wa, torch.cat((self.Xq, self.Xp1), 1)))))
+        self.Xp2score = self.Xp2valid * (
+            torch.mm(self.va, self.tanh(torch.mm(self.Wa, torch.cat((self.Xq, self.Xp2), 1)))))
+        self.Xp1beta = (torch.exp(self.Xp1score) / torch.sum(torch.exp(self.Xp1score), 2)).reshape((-1,1,self.n))
+        self.Xp2beta = (torch.exp(self.Xp2score) / torch.sum(torch.exp(self.Xp2score), 2)).reshape((-1,1,self.n))
+        self.Xp1dash = torch.sum(torch.mul(self.Xp1beta, self.Xp1), 2)
+        self.Xp2dash = torch.sum(torch.mul(self.Xp2beta, self.Xp2), 2)
+
+        self.z1 = torch.abs(self.Xp1dash - self.Xq)
+        self.z2 = torch.abs(self.Xp2dash - self.Xq)
+        self.zdiff = torch.abs(self.Xp1dash - self.Xp2dash)
+        self.zp1 = torch.relu(self.LL2(self.LL1(self.Xp1dash)))
+        self.zp2 = torch.relu(self.LL2(self.LL1(self.Xp2dash)))
+        self.zql = torch.relu(self.LL2(self.LL1(self.Xq)))
+        self.zd = torch.abs(self.zp1 - self.zp2)
+        self.zdqp1 = torch.abs(self.zp1 - self.zql)
+        self.zdqp2 = torch.abs(self.zp2 - self.zql)
+        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        o = torch.relu(self.LL3(self.z))
+        o = o.reshape(-1)
+        return o
+
+    def num_flat_features(self, X):
+        size = X.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+    def predict(self, X_test):
+        y_pred = self.forward(X_test)
+        return y_pred
+
 
 class CATS_Scaled(nn.Module):
     def __init__(self, emb_size):

@@ -144,7 +144,7 @@ class InputSentenceCATSDatasetBuilder:
         assert set(paralist).issubset(set([p[0] for p in paraids])) is True
         self.paraids_dict = {}
         for i in range(len(paraids)):
-            self.paraids_dict[paraids[0]] = [int(paraids[1]), int(paraids[2])]
+            self.paraids_dict[paraids[i][0]] = [int(paraids[i][1]), int(paraids[i][2])]
         self.paravecs_npy = paravecs_npy
         self.queryids = list(queryids_npy)
         self.queryvecs_npy = queryvecs_npy

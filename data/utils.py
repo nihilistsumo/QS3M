@@ -140,48 +140,77 @@ class InputSentenceCATSDatasetBuilder:
             querylist.append(data[0])
             paralist.append(data[1])
             paralist.append(data[2])
-        self.paraids = list(paraids_npy)
-        self.paravecs_npy = paravecs_npy
         assert set(paralist).issubset(set([p[0] for p in self.paraids])) is True
-        queries = list(queryids_npy)
+        paraids = list(paraids_npy)
+        self.paraids_dict = {}
+        for i in range(len(paraids)):
+            self.paraids_dict[paraids[0]] = [int(paraids[1]), int(paraids[2])]
+        self.paravecs_npy = paravecs_npy
+        self.queryids = list(queryids_npy)
+        self.queryvecs_npy = queryvecs_npy
         self.query_attn_data = query_attn_data
-        paralist = list(set(paralist))
-        querylist = list(set(querylist))
-        self.para_vecs = {}
-        paraids_dict = {}
-        for i, para in enumerate(self.paraids):
-            paraids_dict[para] = i
-        queries_dict = {}
-        for i, q in enumerate(queries):
-            queries_dict[q] = i
-        print('Going to initialize para vecs')
-        for p in paralist:
-            self.para_vecs[p] = paravecs_npy[paraids_dict[p]]
-        self.query_vecs = {}
-        missing_queries = set()
-        for q in querylist:
-            if q not in queries_dict.keys():
-                missing_queries.add(q)
-            else:
-                self.query_vecs[q] = queryvecs_npy[queries_dict[q]]
-        if len(missing_queries) > 0:
-            print('Following ' + str(
-                len(missing_queries)) + ' queries are present in qry_attn file but not in context json file')
-            print(
-                'The root cause is these queries are present in article.qrels without any / but in top-level, hier level'
-                'they are always present with /')
-            for q in missing_queries:
-                print(q)
-        print('Init done')
+        self.max_seq_len = 15
+        self.emb_len = 768
+
+        # self.para_vecs = {}
+        # paraids_dict = {}
+        # for i, para in enumerate(self.paraids):
+        #     paraids_dict[para] = i
+        # queries_dict = {}
+        # for i, q in enumerate(queries):
+        #     queries_dict[q] = i
+        # print('Going to initialize para vecs')
+        # for p in paralist:
+        #     self.para_vecs[p] = paravecs_npy[paraids_dict[p]]
+        # self.query_vecs = {}
+
+        # missing_queries = set()
+        # for q in querylist:
+        #     if q not in queries_dict.keys():
+        #         missing_queries.add(q)
+        #     else:
+        #         self.query_vecs[q] = queryvecs_npy[queries_dict[q]]
+        # if len(missing_queries) > 0:
+        #     print('Following ' + str(
+        #         len(missing_queries)) + ' queries are present in qry_attn file but not in context json file')
+        #     print(
+        #         'The root cause is these queries are present in article.qrels without any / but in top-level, hier level'
+        #         'they are always present with /')
+        #     for q in missing_queries:
+        #         print(q)
+        # print('Init done')
 
     def build_input_data(self):
         X = []
         y = []
         for qid, pid1, pid2, label in self.query_attn_data:
             if qid in self.query_vecs.keys():
-                row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
+                # row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
+                qmat = np.tile(self.queryvecs_npy[qid], (self.max_seq_len, 1))
+                p1index_dat = self.paraids_dict[pid1]
+                p1mat = self.paravecs_npy[p1index_dat[0]:p1index_dat[0] + p1index_dat[1]]
+                p1vec_len = p1mat.shape[0]
+                if p1vec_len < self.max_seq_len:
+                    valid_bits = np.array([1.0] * p1vec_len + [0.0] * (self.max_seq_len - p1vec_len))
+                    p1mat = np.hstack((np.vstack((p1mat, np.zeros((self.max_seq_len - p1vec_len, self.emb_len)))), valid_bits))
+                else:
+                    valid_bits = np.array([1.0] * self.max_seq_len)
+                    p1mat = np.hstack((p1mat[:self.max_seq_len], valid_bits))
+
+                p2index_dat = self.paraids_dict[pid2]
+                p2mat = self.paravecs_npy[p2index_dat[0]:p2index_dat[0] + p2index_dat[1]]
+                p2vec_len = p2mat.shape[0]
+                if p2vec_len < self.max_seq_len:
+                    valid_bits = np.array([1.0] * p2vec_len + [0.0] * (self.max_seq_len - p2vec_len))
+                    p2mat = np.hstack(
+                        (np.vstack((p2mat, np.zeros((self.max_seq_len - p2vec_len, self.emb_len)))), valid_bits))
+                else:
+                    valid_bits = np.array([1.0] * self.max_seq_len)
+                    p2mat = np.hstack((p2mat[:self.max_seq_len], valid_bits))
+                dat_mat = np.hstack((qmat, p1mat, p2mat))
+
                 y.append(float(label))
-                X.append(row)
+                X.append(dat_mat)
         X = torch.tensor(X)
         y = torch.tensor(y)
         print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))

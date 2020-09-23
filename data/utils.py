@@ -195,8 +195,9 @@ class InputSentenceCATSDatasetBuilder:
                 p1mat = self.paravecs_npy[p1index_dat[0]:p1index_dat[0] + p1index_dat[1]]
                 p1vec_len = p1mat.shape[0]
                 if p1vec_len < self.max_seq_len:
-                    valid_bits = np.array([1.0] * p1vec_len + [0.0] * (self.max_seq_len - p1vec_len))
-                    p1mat = np.hstack((np.vstack((p1mat, np.zeros((self.max_seq_len - p1vec_len, self.emb_len)))), valid_bits))
+                    valid_bits = np.array([1.0] * p1vec_len + [0.0] * (self.max_seq_len - p1vec_len)).transpose()
+                    z = np.zeros((self.max_seq_len - p1vec_len, self.emb_len))
+                    p1mat = np.hstack((np.vstack((p1mat, z)), valid_bits))
                 else:
                     valid_bits = np.array([1.0] * self.max_seq_len)
                     p1mat = np.hstack((p1mat[:self.max_seq_len], valid_bits))
@@ -205,7 +206,7 @@ class InputSentenceCATSDatasetBuilder:
                 p2mat = self.paravecs_npy[p2index_dat[0]:p2index_dat[0] + p2index_dat[1]]
                 p2vec_len = p2mat.shape[0]
                 if p2vec_len < self.max_seq_len:
-                    valid_bits = np.array([1.0] * p2vec_len + [0.0] * (self.max_seq_len - p2vec_len))
+                    valid_bits = np.array([1.0] * p2vec_len + [0.0] * (self.max_seq_len - p2vec_len)).transpose()
                     p2mat = np.hstack(
                         (np.vstack((p2mat, np.zeros((self.max_seq_len - p2vec_len, self.emb_len)))), valid_bits))
                 else:

@@ -47,13 +47,17 @@ class CATS(nn.Module):
 class CATS_Attention(nn.Module):
     def __init__(self, emb_size, n):
         super(CATS_Attention, self).__init__()
+        if torch.cuda.is_available():
+            device = torch.device('cuda:0')
+        else:
+            device = torch.device('cpu')
         self.emb_size = emb_size
         self.n = n
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
         self.LL3 = nn.Linear(5 * emb_size, 1)
-        self.Wa = torch.tensor(torch.randn(self.n, 2*emb_size), requires_grad=True).cuda()
-        self.va = torch.tensor(torch.randn(1,self.n), requires_grad=True).cuda()
+        self.Wa = torch.tensor(torch.randn(self.n, 2*emb_size), requires_grad=True).to(device)
+        self.va = torch.tensor(torch.randn(1,self.n), requires_grad=True).to(device)
         self.tanh = nn.Tanh()
 
     def forward(self, X):

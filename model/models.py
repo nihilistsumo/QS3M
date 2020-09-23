@@ -88,8 +88,10 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_qids = np.load(test_qids_file)
         test_qvecs = np.load(test_qvecs_file)
 
+        print('Building train data')
         train_data_builder = InputCATSDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs)
         X_train, y_train = train_data_builder.build_input_data()
+        print('Building test data')
         test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
         X_test, y_test = test_data_builder.build_input_data()
 

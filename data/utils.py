@@ -128,6 +128,86 @@ class InputCATSDatasetBuilder:
         print(qid+' X shape: '+str(X.shape))
         return X, parapairs
 
+class InputSentenceCATSDatasetBuilder:
+    '''
+        query_attn_data: [[query ID, para1 ID, para2 ID, int label], ....]
+        '''
+
+    def __init__(self, query_attn_data, paraids_npy, paravecs_npy, queryids_npy, queryvecs_npy):
+        paralist = []
+        querylist = []
+        for data in query_attn_data:
+            querylist.append(data[0])
+            paralist.append(data[1])
+            paralist.append(data[2])
+        self.paraids = list(paraids_npy)
+        self.paravecs_npy = paravecs_npy
+        assert set(paralist).issubset(set([p[0] for p in self.paraids])) is True
+        queries = list(queryids_npy)
+        self.query_attn_data = query_attn_data
+        paralist = list(set(paralist))
+        querylist = list(set(querylist))
+        self.para_vecs = {}
+        paraids_dict = {}
+        for i, para in enumerate(self.paraids):
+            paraids_dict[para] = i
+        queries_dict = {}
+        for i, q in enumerate(queries):
+            queries_dict[q] = i
+        print('Going to initialize para vecs')
+        for p in paralist:
+            self.para_vecs[p] = paravecs_npy[paraids_dict[p]]
+        self.query_vecs = {}
+        missing_queries = set()
+        for q in querylist:
+            if q not in queries_dict.keys():
+                missing_queries.add(q)
+            else:
+                self.query_vecs[q] = queryvecs_npy[queries_dict[q]]
+        if len(missing_queries) > 0:
+            print('Following ' + str(
+                len(missing_queries)) + ' queries are present in qry_attn file but not in context json file')
+            print(
+                'The root cause is these queries are present in article.qrels without any / but in top-level, hier level'
+                'they are always present with /')
+            for q in missing_queries:
+                print(q)
+        print('Init done')
+
+    def build_input_data(self):
+        X = []
+        y = []
+        for qid, pid1, pid2, label in self.query_attn_data:
+            if qid in self.query_vecs.keys():
+                row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
+                y.append(float(label))
+                X.append(row)
+        X = torch.tensor(X)
+        y = torch.tensor(y)
+        print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
+        return X, y
+
+    def build_cluster_data(self, qid, paralist):
+        all_para_vec_dict = {}
+        for i, para in enumerate(self.paraids):
+            all_para_vec_dict[para] = self.paravecs_npy[i]
+        X = []
+        if qid not in self.query_vecs.keys():
+            print(qid + ' not present in query vecs dict')
+            return None
+        parapairs = []
+        for i in range(len(paralist) - 1):
+            for j in range(i + 1, len(paralist)):
+                p1 = paralist[i]
+                p2 = paralist[j]
+                row = np.hstack((self.query_vecs[qid], all_para_vec_dict[p1], all_para_vec_dict[p2]))
+                X.append(row)
+                parapairs.append(p1 + '_' + p2)
+        X = torch.tensor(X)
+        print(qid + ' X shape: ' + str(X.shape))
+        return X, parapairs
+
+
 
 def query_embedder(query_list, embedding_model):
     query_embed = {}

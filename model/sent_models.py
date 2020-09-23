@@ -92,17 +92,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         device = torch.device('cpu')
         # torch.cuda.set_device(torch.device('cpu'))
 
-    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
-    y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
-    cos_auc = roc_auc_score(y_test, y_cos)
-    print('Test cosine auc: ' + str(cos_auc))
-    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
-    y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
-    euclid_auc = roc_auc_score(y_test, y_euclid)
-    print('Test euclidean auc: ' + str(euclid_auc))
-
     train_samples = X_train.shape[0]
-    torch.cuda.empty_cache()
     '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()

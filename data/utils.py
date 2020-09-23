@@ -152,6 +152,10 @@ class InputSentenceCATSDatasetBuilder:
         self.max_seq_len = 15
         self.emb_len = 768
 
+        self.query_indices = {}
+        for i in range(len(self.queryids)):
+            self.query_indices[self.queryids[i]] = i
+
         # self.para_vecs = {}
         # paraids_dict = {}
         # for i, para in enumerate(self.paraids):
@@ -184,9 +188,9 @@ class InputSentenceCATSDatasetBuilder:
         X = []
         y = []
         for qid, pid1, pid2, label in self.query_attn_data:
-            if qid in self.queryids.keys():
+            if qid in self.query_indices.keys():
                 # row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
-                qmat = np.tile(self.queryvecs_npy[qid], (self.max_seq_len, 1))
+                qmat = np.tile(self.queryvecs_npy[self.query_indices[qid]], (self.max_seq_len, 1))
                 p1index_dat = self.paraids_dict[pid1]
                 p1mat = self.paravecs_npy[p1index_dat[0]:p1index_dat[0] + p1index_dat[1]]
                 p1vec_len = p1mat.shape[0]

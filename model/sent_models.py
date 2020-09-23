@@ -86,9 +86,11 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         y_test = torch.tensor(np.load('cache/y_test.npy'))
 
     if torch.cuda.is_available():
-        torch.cuda.set_device(torch.device('cuda:0'))
+        device = torch.device('cuda:0')
+        # torch.cuda.set_device(torch.device('cuda:0'))
     else:
-        torch.cuda.set_device(torch.device('cpu'))
+        device = torch.device('cpu')
+        # torch.cuda.set_device(torch.device('cpu'))
 
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
     y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
@@ -105,14 +107,14 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     X_train = X_train.cuda()
     y_train = y_train.cuda()
     '''
-    X_val = X_val.cuda()
-    y_val = y_val.cuda()
+    X_val = X_val.to(device)
+    y_val = y_val.to(device)
     '''
     X_test = X_test.cuda()
     y_test = y_test.cuda()
     '''
 
-    m = CATSSentenceModel(768).cuda()
+    m = CATSSentenceModel(768).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
@@ -120,8 +122,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         for b in range(math.ceil(train_samples // batch)):
             m.train()
             opt.zero_grad()
-            ypred = m(X_train[b * batch:b * batch + batch].cuda())
-            y_train_curr = y_train[b * batch:b * batch + batch].cuda()
+            ypred = m(X_train[b * batch:b * batch + batch].to(device))
+            y_train_curr = y_train[b * batch:b * batch + batch].to(device)
             loss = mseloss(ypred, y_train_curr)
             auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
             loss.backward()

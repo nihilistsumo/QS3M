@@ -93,7 +93,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
 def main():
     parser = argparse.ArgumentParser(description='Run CATS sentwise model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qtr', '--qry_attn_train', default="half-y1train-qry-attn.tsv")
+    parser.add_argument('-qtr', '--qry_attn_train', default="half-y1train-qry-attn-first10k.tsv")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-trp', '--train_pids', default="half-y1train-qry-attn-paraids-sentwise.npy")
     parser.add_argument('-tp', '--test_pids', default="by1test-allpos-for-eval-pids-sentwise.npy")

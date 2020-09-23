@@ -212,11 +212,11 @@ class InputSentenceCATSDatasetBuilder:
                 else:
                     valid_bits = np.array([1.0] * self.max_seq_len).reshape((-1,1))
                     p2mat = np.hstack((p2mat[:self.max_seq_len], valid_bits))
-                dat_mat = np.hstack((qmat, p1mat, p2mat))
+                dat_mat = np.hstack((qmat, p1mat, p2mat)).reshape((-1, self.max_seq_len))
 
                 y.append(float(label))
                 X.append(dat_mat)
-        X = torch.tensor(X.reshape((-1, 3*self.emb_len+2, self.max_seq_len)))
+        X = torch.tensor(X)
         y = torch.tensor(y)
         print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
         return X, y

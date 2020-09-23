@@ -216,7 +216,7 @@ class InputSentenceCATSDatasetBuilder:
 
                 y.append(float(label))
                 X.append(dat_mat)
-        X = torch.tensor(X)
+        X = torch.tensor(X.reshape((-1, 3*self.emb_len+2, self.max_seq_len)))
         y = torch.tensor(y)
         print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
         return X, y

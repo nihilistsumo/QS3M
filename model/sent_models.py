@@ -15,9 +15,9 @@ import math
 import time
 
 class CATSSentenceModel(nn.Module):
-    def __init__(self, emb_size):
+    def __init__(self, emb_size, n=32):
         super(CATSSentenceModel, self).__init__()
-        self.cats = CATS_Attention(emb_size)
+        self.cats = CATS_Attention(emb_size, n)
 
     def forward(self, X):
         self.pair_scores = self.cats(X)
@@ -104,7 +104,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_test = y_test.cuda()
     '''
 
-    m = CATSSentenceModel(768).to(device)
+    m = CATSSentenceModel(768, 32).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):

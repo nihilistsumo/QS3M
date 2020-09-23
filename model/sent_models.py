@@ -90,6 +90,67 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     else:
         torch.cuda.set_device(torch.device('cpu'))
 
+    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+    y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
+    cos_auc = roc_auc_score(y_test, y_cos)
+    print('Test cosine auc: ' + str(cos_auc))
+    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
+    y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+    euclid_auc = roc_auc_score(y_test, y_euclid)
+    print('Test euclidean auc: ' + str(euclid_auc))
+
+    train_samples = X_train.shape[0]
+    torch.cuda.empty_cache()
+    '''
+    X_train = X_train.cuda()
+    y_train = y_train.cuda()
+    '''
+    X_val = X_val.cuda()
+    y_val = y_val.cuda()
+    '''
+    X_test = X_test.cuda()
+    y_test = y_test.cuda()
+    '''
+
+    m = CATSSentenceModel(768).cuda()
+    opt = optim.Adam(m.parameters(), lr=lrate)
+    mseloss = nn.MSELoss()
+    for i in range(epochs):
+        print('\nEpoch ' + str(i + 1))
+        for b in range(math.ceil(train_samples // batch)):
+            m.train()
+            opt.zero_grad()
+            ypred = m(X_train[b * batch:b * batch + batch].cuda())
+            y_train_curr = y_train[b * batch:b * batch + batch].cuda()
+            loss = mseloss(ypred, y_train_curr)
+            auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
+            loss.backward()
+            opt.step()
+            if b % 100 == 0:
+                m.eval()
+                ypred_val = m(X_val)
+                val_loss = mseloss(ypred_val, y_val)
+                val_auc = roc_auc_score(y_val.detach().cpu().numpy(), ypred_val.detach().cpu().numpy())
+                print(
+                    '\rTrain loss: %.5f, Train auc: %.5f, Val loss: %.5f, Val auc: %.5f' %
+                    (loss.item(), auc, val_loss.item(), val_auc), end='')
+        m.eval()
+        m.cpu()
+        ypred_test = m(X_test)
+        test_loss = mseloss(ypred_test, y_test)
+        test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+        print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
+        m.cuda()
+    m.eval()
+    m.cpu()
+    ypred_test = m(X_test)
+    test_loss = mseloss(ypred_test, y_test)
+    test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+    print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
+
+    if save:
+        torch.save(m.state_dict(), 'saved_models/' + time.strftime('%b-%d-%Y_%H%M', time.localtime()) + '.model')
+
 def main():
     parser = argparse.ArgumentParser(description='Run CATS sentwise model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

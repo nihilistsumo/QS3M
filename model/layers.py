@@ -75,7 +75,7 @@ class CATS_Attention(nn.Module):
         self.Xp2valid = self.Xp2[:, -1, :]
         self.Xp1 = self.Xp1[:, :self.emb_size, :]
         self.Xp2 = self.Xp2[:, :self.emb_size, :]
-        self.Xp1score = self.Xp1valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp1), 1)))))
+        self.Xp1score = self.Xp1valid * (torch.bmm(self.va, self.tanh(torch.cat((self.Xq, self.Xp1), 1)).bmm(self.Wa)))
         self.Xp2score = self.Xp2valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp2), 1)))))
         self.Xp1beta = (torch.exp(self.Xp1score) / torch.sum(torch.exp(self.Xp1score), 2)).reshape((-1,1,self.n))
         self.Xp2beta = (torch.exp(self.Xp2score) / torch.sum(torch.exp(self.Xp2score), 2)).reshape((-1,1,self.n))

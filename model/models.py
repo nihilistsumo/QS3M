@@ -118,9 +118,11 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         y_test = torch.tensor(np.load('cache/y_test.npy'))
 
     if torch.cuda.is_available():
-        torch.cuda.set_device(torch.device('cuda:0'))
+        device = torch.device('cuda:0')
+        #torch.cuda.set_device(torch.device('cuda:0'))
     else:
-        torch.cuda.set_device(torch.device('cpu'))
+        device = torch.device('cpu')
+        #torch.cuda.set_device(torch.device('cpu'))
 
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
     y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
@@ -132,7 +134,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     print('Test euclidean auc: ' + str(euclid_auc))
 
     train_samples = X_train.shape[0]
-    torch.cuda.empty_cache()
+    #torch.cuda.empty_cache()
     '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()
@@ -144,7 +146,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_test = y_test.cuda()
     '''
 
-    m = CATSSimilarityModel(768).cuda()
+    m = CATSSimilarityModel(768).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
@@ -152,8 +154,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         for b in range(math.ceil(train_samples//batch)):
             m.train()
             opt.zero_grad()
-            ypred = m(X_train[b*batch:b*batch + batch].cuda())
-            y_train_curr = y_train[b*batch:b*batch + batch].cuda()
+            ypred = m(X_train[b*batch:b*batch + batch].to(device))
+            y_train_curr = y_train[b*batch:b*batch + batch].to(device)
             loss = mseloss(ypred, y_train_curr)
             auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
             loss.backward()
@@ -172,7 +174,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_loss = mseloss(ypred_test, y_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
-        m.cuda()
+        if torch.cuda.is_available():
+            m.cuda()
     m.eval()
     m.cpu()
     ypred_test = m(X_test)

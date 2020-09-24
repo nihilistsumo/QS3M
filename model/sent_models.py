@@ -128,12 +128,14 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
                     '\rTrain loss: %.5f, Train auc: %.5f, Val loss: %.5f, Val auc: %.5f' %
                     (loss.item(), auc, val_loss.item(), val_auc), end='')
         m.eval()
-        m.cpu()
+        if torch.cuda.is_available():
+            m.cpu()
         ypred_test = m(X_test)
         test_loss = mseloss(ypred_test, y_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
-        m.cuda()
+        if torch.cuda.is_available():
+            m.cuda()
     m.eval()
     m.cpu()
     ypred_test = m(X_test)

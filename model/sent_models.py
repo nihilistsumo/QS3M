@@ -18,6 +18,8 @@ class CATSSentenceModel(nn.Module):
     def __init__(self, emb_size, n=32):
         super(CATSSentenceModel, self).__init__()
         self.cats = CATS_Attention(emb_size, n)
+        self.Wa = self.cats.Wa
+        self.va = self.va
 
     def forward(self, X):
         self.pair_scores = self.cats(X.float())

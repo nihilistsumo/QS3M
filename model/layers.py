@@ -80,8 +80,10 @@ class CATS_Attention(nn.Module):
         self.Xqp2 = torch.cat((self.Xq, self.Xp2), 1).view(-1, seq_len, 2*self.emb_size)
         #self.Xp1score = self.Xp1valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp1), 1)))))
         #self.Xp2score = self.Xp2valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp2), 1)))))
-        self.Xp1score = self.Xp1valid * torch.mm(self.tanh(torch.mm(self.Xqp1.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)).view(-1, self.n), self.va)
-        self.Xp2score = self.Xp2valid * torch.mm(self.tanh(torch.mm(self.Xqp2.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)).view(-1, self.n), self.va)
+        self.Xp1mul = torch.mm(self.tanh(torch.mm(self.Xqp1.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)).view(-1, self.n), self.va)
+        self.Xp2mul = torch.mm(self.tanh(torch.mm(self.Xqp2.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)).view(-1, self.n), self.va)
+        self.Xp1score = self.Xp1valid * self.Xp1mul
+        self.Xp2score = self.Xp2valid * self.Xp2mul
         self.Xp1beta = (torch.exp(self.Xp1score) / torch.sum(torch.exp(self.Xp1score), 2)).reshape((-1,1,self.n))
         self.Xp2beta = (torch.exp(self.Xp2score) / torch.sum(torch.exp(self.Xp2score), 2)).reshape((-1,1,self.n))
         self.Xp1dash = torch.sum(torch.mul(self.Xp1beta, self.Xp1), 2)

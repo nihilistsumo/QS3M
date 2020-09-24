@@ -94,7 +94,6 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         # torch.cuda.set_device(torch.device('cpu'))
 
     train_samples = X_train.shape[0]
-    device.empty_cache()
     '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()
@@ -138,6 +137,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         print(m.cats.Wa[0])
         if torch.cuda.is_available():
             m.cuda()
+        else:
+            m.to(device)
     m.eval()
     m.cpu()
     ypred_test = m(X_test)

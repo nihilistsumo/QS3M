@@ -67,7 +67,6 @@ class CATS_Attention(nn.Module):
         extra two values in dim 1 are the valid bits for p1 and p2 in the current sample
         :return s: Pairwise CATS scores of shape (mC2 X 1)
         '''
-        xnumpy = X.numpy()
         seq_len = X.shape[2]
         self.Xq = X[:, :self.emb_size, :]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size+1, :]

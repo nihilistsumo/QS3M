@@ -139,8 +139,8 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     X_train = X_train.cuda()
     y_train = y_train.cuda()
     '''
-    X_val = X_val.cuda()
-    y_val = y_val.cuda()
+    X_val = X_val.to(device)
+    y_val = y_val.to(device)
     '''
     X_test = X_test.cuda()
     y_test = y_test.cuda()

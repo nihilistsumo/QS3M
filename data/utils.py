@@ -215,7 +215,7 @@ class InputSentenceCATSDatasetBuilder:
                 dat_mat = np.hstack((qmat, p1mat, p2mat)).reshape((-1, self.max_seq_len))
 
                 y.append(float(label))
-                X.append(dat_mat)
+                X.append(dat_mat.transpose())
         X = torch.tensor(X)
         y = torch.tensor(y)
         print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))

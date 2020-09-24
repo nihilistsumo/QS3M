@@ -89,7 +89,7 @@ class CATS_Attention(nn.Module):
         self.Xp1dash = torch.sum(torch.mul(self.Xp1beta, self.Xp1), 2)
         self.Xp2dash = torch.sum(torch.mul(self.Xp2beta, self.Xp2), 2)
 
-        self.Xq = self.Xq[0]
+        self.Xq = self.Xq[:, :, 0]
         self.z1 = torch.abs(self.Xp1dash - self.Xq)
         self.z2 = torch.abs(self.Xp2dash - self.Xq)
         self.zdiff = torch.abs(self.Xp1dash - self.Xp2dash)

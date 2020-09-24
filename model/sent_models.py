@@ -20,7 +20,7 @@ class CATSSentenceModel(nn.Module):
         self.cats = CATS_Attention(emb_size, n)
 
     def forward(self, X):
-        self.pair_scores = self.cats(X)
+        self.pair_scores = self.cats(X.float())
         return self.pair_scores
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,

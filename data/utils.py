@@ -212,7 +212,7 @@ class InputSentenceCATSDatasetBuilder:
                 else:
                     valid_bits = np.array([1.0] * self.max_seq_len).reshape((-1,1))
                     p2mat = np.hstack((p2mat[:self.max_seq_len], valid_bits))
-                dat_mat = np.hstack((qmat, p1mat, p2mat)).reshape((-1, self.max_seq_len))
+                dat_mat = np.hstack((qmat, p1mat, p2mat))
 
                 y.append(float(label))
                 X.append(dat_mat.transpose())

@@ -84,8 +84,8 @@ class CATS_Attention(nn.Module):
         self.Xp2mul = torch.mm(self.tanh(torch.mm(self.Xqp2.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)).view(-1, self.n), self.va).view(-1, seq_len)
         self.Xp1score = self.Xp1valid * self.Xp1mul
         self.Xp2score = self.Xp2valid * self.Xp2mul
-        self.Xp1beta = (torch.exp(self.Xp1score) / torch.sum(torch.exp(self.Xp1score), 2)).reshape((-1,1,self.n))
-        self.Xp2beta = (torch.exp(self.Xp2score) / torch.sum(torch.exp(self.Xp2score), 2)).reshape((-1,1,self.n))
+        self.Xp1beta = (torch.exp(self.Xp1score) / torch.sum(torch.exp(self.Xp1score), 1)).reshape((-1,1,seq_len))
+        self.Xp2beta = (torch.exp(self.Xp2score) / torch.sum(torch.exp(self.Xp2score), 1)).reshape((-1,1,seq_len))
         self.Xp1dash = torch.sum(torch.mul(self.Xp1beta, self.Xp1), 2)
         self.Xp2dash = torch.sum(torch.mul(self.Xp2beta, self.Xp2), 2)
 

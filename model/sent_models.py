@@ -94,6 +94,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         # torch.cuda.set_device(torch.device('cpu'))
 
     train_samples = X_train.shape[0]
+    device.empty_cache()
     '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()

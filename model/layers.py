@@ -56,8 +56,8 @@ class CATS_Attention(nn.Module):
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
         self.LL3 = nn.Linear(5 * emb_size, 1)
-        self.Wa = torch.tensor(torch.randn(self.n, 2*emb_size), requires_grad=True).to(device)
-        self.va = torch.tensor(torch.randn(1,self.n), requires_grad=True).to(device)
+        self.Wa = torch.tensor(torch.randn(2*emb_size, self.n), requires_grad=True).to(device)
+        self.va = torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device)
         self.tanh = nn.Tanh()
 
     def forward(self, X):
@@ -68,6 +68,7 @@ class CATS_Attention(nn.Module):
         :return s: Pairwise CATS scores of shape (mC2 X 1)
         '''
         xnumpy = X.numpy()
+        seq_len = X.shape[2]
         self.Xq = X[:, :self.emb_size, :]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size+1, :]
         self.Xp2 = X[:, 2 * self.emb_size+1:]
@@ -75,8 +76,12 @@ class CATS_Attention(nn.Module):
         self.Xp2valid = self.Xp2[:, -1, :]
         self.Xp1 = self.Xp1[:, :self.emb_size, :]
         self.Xp2 = self.Xp2[:, :self.emb_size, :]
-        self.Xp1score = self.Xp1valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp1), 1)))))
-        self.Xp2score = self.Xp2valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp2), 1)))))
+        self.Xqp1 = torch.cat((self.Xq, self.Xp1), 1).view(-1, seq_len, 2*self.emb_size)
+        self.Xqp2 = torch.cat((self.Xq, self.Xp2), 1).view(-1, seq_len, 2*self.emb_size)
+        #self.Xp1score = self.Xp1valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp1), 1)))))
+        #self.Xp2score = self.Xp2valid * (torch.bmm(self.va, self.tanh(torch.bmm(self.Wa, torch.cat((self.Xq, self.Xp2), 1)))))
+        self.Xp1score = self.Xp1valid * torch.mm(self.tanh(torch.mm(self.Xqp1.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)), self.va)
+        self.Xp2score = self.Xp2valid * torch.mm(self.tanh(torch.mm(self.Xqp2.view(-1, 2 * self.emb_size), self.Wa).view(-1, seq_len, self.n)), self.va)
         self.Xp1beta = (torch.exp(self.Xp1score) / torch.sum(torch.exp(self.Xp1score), 2)).reshape((-1,1,self.n))
         self.Xp2beta = (torch.exp(self.Xp2score) / torch.sum(torch.exp(self.Xp2score), 2)).reshape((-1,1,self.n))
         self.Xp1dash = torch.sum(torch.mul(self.Xp1beta, self.Xp1), 2)

@@ -121,7 +121,7 @@ class CATS_Scaled(nn.Module):
         self.emb_size = emb_size
         self.n = 32
         self.LL1 = nn.Linear(emb_size, 2*self.n)
-        self.LL1 = nn.Linear(2 * self.n, self.n)
+        self.LL2 = nn.Linear(2 * self.n, self.n)
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:

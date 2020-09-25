@@ -142,6 +142,7 @@ class CATS_Scaled(nn.Module):
         self.zdqp1 = torch.abs(self.zp1 - self.zql)
         self.zdqp2 = torch.abs(self.zp2 - self.zql)
         self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        print(self.A)
         o = torch.relu(self.LL1(self.z))
         o = o.reshape(-1)
         return o

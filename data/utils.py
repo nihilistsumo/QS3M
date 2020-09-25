@@ -193,7 +193,7 @@ class InputSentenceCATSDatasetBuilder:
                 Xq.append(qvec)
                 Xp.append(dat_mat.transpose())
                 i += 1
-                if i % 1000 == 0:
+                if i % 10000 == 0:
                     print(str(i) + ' samples processed out of '+str(samples))
         Xq = torch.tensor(Xq)
         Xp = torch.tensor(Xp)

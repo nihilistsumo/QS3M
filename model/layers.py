@@ -119,12 +119,13 @@ class CATS_Scaled(nn.Module):
     def __init__(self, emb_size):
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size
-        self.LL1 = nn.Linear(emb_size, emb_size)
+        self.n = 32
+        self.LL1 = nn.Linear(emb_size, self.n)
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:
             device = torch.device('cpu')
-        self.A = nn.Parameter(torch.tensor(torch.randn(emb_size, emb_size), requires_grad=True).to(device))
+        self.A = nn.Parameter(torch.tensor(torch.randn(self.n, emb_size), requires_grad=True).to(device))
         self.cos = nn.CosineSimilarity()
 
     def forward(self, X):

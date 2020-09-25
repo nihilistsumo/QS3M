@@ -17,13 +17,7 @@ import time
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, by2test=False):
-    model = CATSSimilarityModel(768)
-    if model_type == 'triam':
-        model.cats = CATS(768)
-    elif model_type == 'qscale':
-        model.cats = CATS_QueryScaler(768)
-    else:
-        print('Wrong model type')
+    model = CATSSimilarityModel(768, model_type)
     model.load_state_dict(torch.load(model_path))
     model.eval()
     qry_attn_ts = []
@@ -136,8 +130,8 @@ def main():
     parser.add_argument('-tv', '--test_pvecs', default="by2test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by2test-context-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
-    parser.add_argument('-mt', '--model_type', default="qscale")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_2queryscale_layer_b32_l0.00001_i5.model")
+    parser.add_argument('-mt', '--model_type', default="cats")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
     args = parser.parse_args()
     dat = args.data_dir

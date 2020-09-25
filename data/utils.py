@@ -195,8 +195,11 @@ class InputSentenceCATSDatasetBuilder:
                 i += 1
                 if i % 10000 == 0:
                     print(str(i) + ' samples processed out of '+str(samples))
-        Xq = torch.tensor(Xq)
-        Xp = torch.tensor(Xp)
+        Xq = np.array(Xq)
+        Xp = np.array(Xp)
+        print('numpy conversion done')
+        Xq = torch.as_tensor(Xq)
+        Xp = torch.as_tensor(Xp)
         y = torch.tensor(y)
         print('Xq shape: ' + str(Xq.shape) + ', Xp shape: ' + str(Xp.shape) + ', y shape: ' + str(y.shape))
         return Xq, Xp, y

@@ -94,7 +94,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             for i in range(len(parapairs)):
                 pair_score_dict[parapairs[i]] = 1-pair_scores[i].item()
                 pair_baseline_score_dict[parapairs[i]] = 1-pair_baseline_scores[i]
-                pair_euclid_score_dict[parapairs[i]] = 1-pair_euclid_scores[i]
+                pair_euclid_score_dict[parapairs[i]] = pair_euclid_scores[i]
             dist_mat = []
             dist_base_mat = []
             dist_euc_mat = []

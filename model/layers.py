@@ -124,7 +124,7 @@ class CATS_Scaled(nn.Module):
             device = torch.device('cuda:0')
         else:
             device = torch.device('cpu')
-        self.A = torch.tensor(torch.randn(emb_size), requires_grad=True).to(device)
+        self.A = nn.Parameter(torch.tensor(torch.randn(emb_size), requires_grad=True).to(device))
 
     def forward(self, X):
         '''

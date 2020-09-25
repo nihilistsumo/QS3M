@@ -63,7 +63,6 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
         X_test, y_test = test_data_builder.build_input_data()
 
-        xtrain_numpy = X_train.numpy()
         val_split_ratio = 0.1
         val_sample_size = int(X_train.shape[0] * val_split_ratio)
 

@@ -60,13 +60,54 @@ class CATS_Attention(nn.Module):
         self.va = nn.Parameter(torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device))
         self.tanh = nn.Tanh()
 
-    def forward(self, X):
+    def forward(self, Xq, Xp):
         '''
 
-        :param X: The input tensor is of shape (m X (3*vec size + 2) X N) where m = batch size, N = max seq len
-        extra two values in dim 1 are the valid bits for p1 and p2 in the current sample
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :param Xq: context vec of shape (m X vec size)
+        :param Xp: para sent vecs of shape (m X 2*vec size + 2 X max seq len)
+        :return: Pairwise CATS scores of shape (mC2 X 1)
         '''
+        b = Xq.shape[0]
+        e = Xq.shape[1]
+        seq = Xp.shape[2]
+        self.Xp1 = Xp[:, :self.emb_size + 1, :]
+        self.Xp2 = Xp[:, self.emb_size + 1:, :]
+        self.Xp1valid = self.Xp1[:, -1, :]
+        self.Xp2valid = self.Xp2[:, -1, :]
+        self.Xp1 = self.Xp1[:, :self.emb_size, :]
+        self.Xp2 = self.Xp2[:, :self.emb_size, :]
+        self.S1 = torch.mul(self.Xp1valid, torch.mm(
+            self.va, self.tanh(torch.mm(
+                self.Wa, torch.cat((torch.cat(seq * [self.Xq]).view(b, e, -1), self.Xp1), 1)))))
+        self.Xp1dash = torch.sum(torch.mul(
+            (torch.exp(self.S1) / torch.sum(torch.exp(self.S1), 1)).view(b, 1, seq), self.Xp1), 2)
+        self.S2 = torch.mul(self.Xp2valid, torch.mm(
+            self.va, self.tanh(torch.mm(
+                self.Wa, torch.cat((torch.cat(seq * [self.Xq]).view(b, e, -1), self.Xp2), 1)))))
+        self.Xp2dash = torch.sum(torch.mul(
+            (torch.exp(self.S2) / torch.sum(torch.exp(self.S2), 1)).view(b, 1, seq), self.Xp2), 2)
+
+        self.z1 = torch.abs(self.Xp1dash - self.Xq)
+        self.z2 = torch.abs(self.Xp2dash - self.Xq)
+        self.zdiff = torch.abs(self.Xp1dash - self.Xp2dash)
+        self.zp1 = torch.relu(self.LL2(self.LL1(self.Xp1dash)))
+        self.zp2 = torch.relu(self.LL2(self.LL1(self.Xp2dash)))
+        self.zql = torch.relu(self.LL2(self.LL1(self.Xq)))
+        self.zd = torch.abs(self.zp1 - self.zp2)
+        self.zdqp1 = torch.abs(self.zp1 - self.zql)
+        self.zdqp2 = torch.abs(self.zp2 - self.zql)
+        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        o = torch.relu(self.LL3(self.z))
+        o = o.reshape(-1)
+        return o
+
+    '''
+    def forward(self, X):
+
+        #:param X: The input tensor is of shape (m X (3*vec size + 2) X N) where m = batch size, N = max seq len
+        #extra two values in dim 1 are the valid bits for p1 and p2 in the current sample
+        #:return s: Pairwise CATS scores of shape (mC2 X 1)
+        
         seq_len = X.shape[2]
         self.Xq = X[:, :self.emb_size, :]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size+1, :]
@@ -102,7 +143,7 @@ class CATS_Attention(nn.Module):
         o = torch.relu(self.LL3(self.z))
         o = o.reshape(-1)
         return o
-
+    '''
     def num_flat_features(self, X):
         size = X.size()[1:]  # all dimensions except the batch dimension
         num_features = 1

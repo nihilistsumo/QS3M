@@ -157,12 +157,13 @@ class InputSentenceCATSDatasetBuilder:
             self.query_indices[self.queryids[i]] = i
 
     def build_input_data(self):
-        X = []
+        Xq = []
+        Xp = []
         y = []
         for qid, pid1, pid2, label in self.query_attn_data:
             if qid in self.query_indices.keys():
                 # row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
-                qmat = np.tile(self.queryvecs_npy[self.query_indices[qid]], (self.max_seq_len, 1))
+                qvec = self.queryvecs_npy[self.query_indices[qid]]
                 p1index_dat = self.paraids_dict[pid1]
                 p1mat = self.paravecs_npy[p1index_dat[0]:p1index_dat[0] + p1index_dat[1]]
                 p1vec_len = p1mat.shape[0]
@@ -184,14 +185,16 @@ class InputSentenceCATSDatasetBuilder:
                 else:
                     valid_bits = np.array([1.0] * self.max_seq_len).reshape((-1,1))
                     p2mat = np.hstack((p2mat[:self.max_seq_len], valid_bits))
-                dat_mat = np.hstack((qmat, p1mat, p2mat))
+                dat_mat = np.hstack((p1mat, p2mat))
 
                 y.append(float(label))
-                X.append(dat_mat.transpose())
-        X = torch.tensor(X)
+                Xq.append(qvec)
+                Xp.append(dat_mat.transpose())
+        Xq = torch.tensor(Xq)
+        Xp = torch.tensor(Xp)
         y = torch.tensor(y)
-        print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
-        return X, y
+        print('Xq shape: ' + str(Xq.shape) + ', Xp shape: ' + str(Xp.shape) + ', y shape: ' + str(y.shape))
+        return Xq, Xp, y
 
     def build_cluster_data(self, qid, paralist):
         all_para_vec_dict = {}
@@ -252,3 +255,23 @@ def read_art_qrels(art_qrels):
             else:
                 page_paras[q].append(p)
     return page_paras
+
+def main():
+    qry_attn_file = '/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-tiny.tsv'
+    pids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paraids-sentwise.npy')
+    pvecs_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paravecs-sentwise.npy')
+    qids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-context-qids.npy')
+    qvecs_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-context-qvecs.npy')
+    qry_attn = []
+    with open(qry_attn_file, 'r') as trf:
+        f = True
+        for l in trf:
+            if f:
+                f = False
+                continue
+            qry_attn.append(l.split('\t'))
+    dat = InputSentenceCATSDatasetBuilder(qry_attn, pids_npy, pvecs_npy, qids_npy, qvecs_npy)
+    dat_out = dat.build_input_data()
+
+if __name__ == '__main__':
+    main()

@@ -58,32 +58,40 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
 
         print('Building train data')
         train_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs)
-        X_train, y_train = train_data_builder.build_input_data()
+        X_train_q, X_train_p, y_train = train_data_builder.build_input_data()
         print('Building test data')
         test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
-        X_test, y_test = test_data_builder.build_input_data()
+        X_test_q, X_test_p, y_test = test_data_builder.build_input_data()
 
         val_split_ratio = 0.1
-        val_sample_size = int(X_train.shape[0] * val_split_ratio)
+        val_sample_size = int(X_train_q.shape[0] * val_split_ratio)
 
-        X_val = X_train[:val_sample_size]
+        X_val_q = X_train_q[:val_sample_size]
+        X_val_p = X_train_p[:val_sample_size]
         y_val = y_train[:val_sample_size]
-        X_train = X_train[val_sample_size:]
+        X_train_q = X_train_q[val_sample_size:]
+        X_train_p = X_train_p[val_sample_size:]
         y_train = y_train[val_sample_size:]
 
-        np.save('cache/X_train.npy', X_train)
-        np.save('cache/y_train.npy', y_train)
-        np.save('cache/X_val.npy', X_val)
-        np.save('cache/y_val.npy', y_val)
-        np.save('cache/X_test.npy', X_test)
-        np.save('cache/y_test.npy', y_test)
+        np.save('sent_cache/X_train_q.npy', X_train_q)
+        np.save('sent_cache/X_train_p.npy', X_train_p)
+        np.save('sent_cache/y_train.npy', y_train)
+        np.save('sent_cache/X_val_q.npy', X_val_q)
+        np.save('sent_cache/X_val_p.npy', X_val_p)
+        np.save('sent_cache/y_val.npy', y_val)
+        np.save('sent_cache/X_test_q.npy', X_test_q)
+        np.save('sent_cache/X_test_p.npy', X_test_p)
+        np.save('sent_cache/y_test.npy', y_test)
     else:
-        X_train = torch.tensor(np.load('cache/X_train.npy'))
-        y_train = torch.tensor(np.load('cache/y_train.npy'))
-        X_val = torch.tensor(np.load('cache/X_val.npy'))
-        y_val = torch.tensor(np.load('cache/y_val.npy'))
-        X_test = torch.tensor(np.load('cache/X_test.npy'))
-        y_test = torch.tensor(np.load('cache/y_test.npy'))
+        X_train_q = torch.tensor(np.load('sent_cache/X_train_q.npy'))
+        X_train_p = torch.tensor(np.load('sent_cache/X_train_p.npy'))
+        y_train = torch.tensor(np.load('sent_cache/y_train.npy'))
+        X_val_q = torch.tensor(np.load('sent_cache/X_val_q.npy'))
+        X_val_p = torch.tensor(np.load('sent_cache/X_val_p.npy'))
+        y_val = torch.tensor(np.load('sent_cache/y_val.npy'))
+        X_test_q = torch.tensor(np.load('sent_cache/X_test_q.npy'))
+        X_test_p = torch.tensor(np.load('sent_cache/X_test_p.npy'))
+        y_test = torch.tensor(np.load('sent_cache/y_test.npy'))
 
     if torch.cuda.is_available():
         device = torch.device('cuda:0')
@@ -92,12 +100,13 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         device = torch.device('cpu')
         # torch.cuda.set_device(torch.device('cpu'))
 
-    train_samples = X_train.shape[0]
+    train_samples = X_train_q.shape[0]
     '''
     X_train = X_train.cuda()
     y_train = y_train.cuda()
     '''
-    X_val = X_val.to(device)
+    X_val_q = X_val_q.to(device)
+    X_val_p = X_val_p.to(device)
     y_val = y_val.to(device)
     '''
     X_test = X_test.cuda()
@@ -112,7 +121,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         for b in range(math.ceil(train_samples // batch)):
             m.train()
             opt.zero_grad()
-            ypred = m(X_train[b * batch:b * batch + batch].to(device))
+            ypred = m(X_train_q[b * batch:b * batch + batch].to(device), X_train_p[b * batch:b * batch + batch].to(device))
             y_train_curr = y_train[b * batch:b * batch + batch].to(device)
             loss = mseloss(ypred, y_train_curr)
             auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
@@ -120,7 +129,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
             opt.step()
             if b % 100 == 0:
                 m.eval()
-                ypred_val = m(X_val)
+                ypred_val = m(X_val_q, X_val_p)
                 val_loss = mseloss(ypred_val, y_val)
                 val_auc = roc_auc_score(y_val.detach().cpu().numpy(), ypred_val.detach().cpu().numpy())
                 print(
@@ -129,7 +138,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         m.eval()
         if torch.cuda.is_available():
             m.cpu()
-        ypred_test = m(X_test)
+        ypred_test = m(X_test_q, X_test_p)
         test_loss = mseloss(ypred_test, y_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
@@ -137,7 +146,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
             m.cuda()
     m.eval()
     m.cpu()
-    ypred_test = m(X_test)
+    ypred_test = m(X_test_q, X_test_p)
     test_loss = mseloss(ypred_test, y_test)
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
     print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))

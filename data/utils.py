@@ -276,7 +276,7 @@ def main():
                 continue
             qry_attn.append(l.split('\t'))
     dat = InputSentenceCATSDatasetBuilder(qry_attn, pids_npy, pvecs_npy, qids_npy, qvecs_npy)
-    dat_out = dat.build_input_data()
+    Xq, Xp, y = dat.build_input_data()
 
 if __name__ == '__main__':
     main()

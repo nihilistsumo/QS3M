@@ -119,7 +119,7 @@ class CATS_Scaled(nn.Module):
     def __init__(self, emb_size):
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size
-        self.n = 32
+        self.n = 256
         self.LL1 = nn.Linear(emb_size, 2*self.n)
         self.LL2 = nn.Linear(2 * self.n, self.n)
         if torch.cuda.is_available():

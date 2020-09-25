@@ -119,12 +119,13 @@ class CATS_Scaled(nn.Module):
     def __init__(self, emb_size):
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size
-        self.LL1 = nn.Linear(5 * emb_size, 1)
+        #self.LL1 = nn.Linear(5 * emb_size, 1)
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:
             device = torch.device('cpu')
-        self.A = nn.Parameter(torch.tensor(torch.randn(emb_size), requires_grad=True).to(device))
+        self.A = nn.Parameter(torch.tensor(torch.randn(emb_size, emb_size), requires_grad=True).to(device))
+        self.cos = nn.CosineSimilarity()
 
     def forward(self, X):
         '''
@@ -135,15 +136,11 @@ class CATS_Scaled(nn.Module):
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
         self.Xp2 = X[:, 2 * self.emb_size:]
-        self.zp1 = torch.mul(self.Xp1, self.A)
-        self.zp2 = torch.mul(self.Xp2, self.A)
-        self.zql = torch.mul(self.Xq, self.A)
-        self.zd = torch.abs(self.zp1 - self.zp2)
-        self.zdqp1 = torch.abs(self.zp1 - self.zql)
-        self.zdqp2 = torch.abs(self.zp2 - self.zql)
-        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        self.scale = torch.mm(self.Xq, self.A)
+        self.zp1 = torch.mul(self.Xp1, self.scale)
+        self.zp2 = torch.mul(self.Xp2, self.scale)
 
-        o = torch.relu(self.LL1(self.z))
+        o = self.cos(self.zp1, self.zp2)
         o = o.reshape(-1)
         return o
 

@@ -160,6 +160,8 @@ class InputSentenceCATSDatasetBuilder:
         Xq = []
         Xp = []
         y = []
+        samples = len(self.query_attn_data)
+        i = 0
         for qid, pid1, pid2, label in self.query_attn_data:
             if qid in self.query_indices.keys():
                 # row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
@@ -190,6 +192,9 @@ class InputSentenceCATSDatasetBuilder:
                 y.append(float(label))
                 Xq.append(qvec)
                 Xp.append(dat_mat.transpose())
+                i += 1
+                if i % 1000 == 0:
+                    print(str(i) + ' samples processed out of '+str(samples))
         Xq = torch.tensor(Xq)
         Xp = torch.tensor(Xp)
         y = torch.tensor(y)
@@ -257,7 +262,7 @@ def read_art_qrels(art_qrels):
     return page_paras
 
 def main():
-    qry_attn_file = '/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-first10k.tsv'
+    qry_attn_file = '/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn.tsv'
     pids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paraids-sentwise.npy')
     pvecs_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paravecs-sentwise.npy')
     qids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-context-qids.npy')

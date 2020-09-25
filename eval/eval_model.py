@@ -143,10 +143,10 @@ def main():
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
     parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
+    parser.add_argument('-tq', '--test_qids', default="by1test-context-meanall-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-meanall-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_meanall_b32_l0.00001_i3.model")
 
     args = parser.parse_args()
     dat = args.data_dir

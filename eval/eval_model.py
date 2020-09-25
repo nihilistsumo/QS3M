@@ -87,7 +87,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             pair_scores = model(X_page)
             pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
             pair_baseline_scores = (pair_baseline_scores - torch.min(pair_baseline_scores)) / (torch.max(pair_baseline_scores) - torch.min(pair_baseline_scores))
-            #pair_euclid_scores = (pair_euclid_scores - np.min(pair_euclid_scores)) / (np.max(pair_euclid_scores) - np.min(pair_euclid_scores))
+            pair_euclid_scores = (pair_euclid_scores - np.min(pair_euclid_scores)) / (np.max(pair_euclid_scores) - np.min(pair_euclid_scores))
             pair_score_dict = {}
             pair_baseline_score_dict = {}
             pair_euclid_score_dict = {}

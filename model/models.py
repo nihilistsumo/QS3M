@@ -47,9 +47,16 @@ class SimilarityClusteringModel(nn.Module):
         return sim_matrix
 
 class CATSSimilarityModel(nn.Module):
-    def __init__(self, emb_size):
+    def __init__(self, emb_size, cats_type):
         super(CATSSimilarityModel, self).__init__()
-        self.cats = CATS_Scaled(emb_size)
+        if cats_type == 'cats':
+            self.cats = CATS(emb_size)
+        elif cats_type == 'scaled':
+            self.cats = CATS_Scaled(emb_size)
+        elif cats_type == 'qscale':
+            self.cats = CATS_QueryScaler(emb_size)
+        else:
+            self.cats = None
 
     def forward(self, X):
         self.pair_scores = self.cats(X)
@@ -57,7 +64,7 @@ class CATSSimilarityModel(nn.Module):
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,
               test_pvecs_file, train_qids_file, test_qids_file, train_qvecs_file, test_qvecs_file, use_cache,
-              lrate, batch, epochs, save):
+              lrate, batch, epochs, save, cats_type):
     if not use_cache:
         qry_attn_tr = []
         qry_attn_ts = []
@@ -146,7 +153,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_test = y_test.cuda()
     '''
 
-    m = CATSSimilarityModel(768).to(device)
+    m = CATSSimilarityModel(768, cats_type).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
@@ -204,6 +211,7 @@ def main():
     parser.add_argument('-lr', '--lrate', type=float, default=0.0001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
     parser.add_argument('-ep', '--epochs', type=int, default=5)
+    parser.add_argument('-ct', '--cats_type', default="cats")
     parser.add_argument('--cache', action='store_true')
     parser.add_argument('--save', action='store_true')
 
@@ -212,7 +220,7 @@ def main():
 
     run_model(dat+args.qry_attn_train, dat+args.qry_attn_test, dat+args.train_pids, dat+args.test_pids, dat+args.train_pvecs,
               dat+args.test_pvecs, dat+args.train_qids, dat+args.test_qids, dat+args.train_qvecs, dat+args.test_qvecs,
-              args.cache, args.lrate, args.batch, args.epochs, args.save)
+              args.cache, args.lrate, args.batch, args.epochs, args.save, args.cats_type)
 
 
 if __name__ == '__main__':

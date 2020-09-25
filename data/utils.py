@@ -257,7 +257,7 @@ def read_art_qrels(art_qrels):
     return page_paras
 
 def main():
-    qry_attn_file = '/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-tiny.tsv'
+    qry_attn_file = '/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-first10k.tsv'
     pids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paraids-sentwise.npy')
     pvecs_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paravecs-sentwise.npy')
     qids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-context-qids.npy')

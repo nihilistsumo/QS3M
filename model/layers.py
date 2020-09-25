@@ -56,8 +56,8 @@ class CATS_Attention(nn.Module):
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
         self.LL3 = nn.Linear(5 * emb_size, 1)
-        self.Wa = torch.tensor(torch.randn(2*emb_size, self.n), requires_grad=True).to(device)
-        self.va = torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device)
+        self.Wa = nn.Parameter(torch.tensor(torch.randn(2*emb_size, self.n), requires_grad=True).to(device))
+        self.va = nn.Parameter(torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device))
         self.tanh = nn.Tanh()
 
     def forward(self, X):

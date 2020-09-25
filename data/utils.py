@@ -156,34 +156,6 @@ class InputSentenceCATSDatasetBuilder:
         for i in range(len(self.queryids)):
             self.query_indices[self.queryids[i]] = i
 
-        # self.para_vecs = {}
-        # paraids_dict = {}
-        # for i, para in enumerate(self.paraids):
-        #     paraids_dict[para] = i
-        # queries_dict = {}
-        # for i, q in enumerate(queries):
-        #     queries_dict[q] = i
-        # print('Going to initialize para vecs')
-        # for p in paralist:
-        #     self.para_vecs[p] = paravecs_npy[paraids_dict[p]]
-        # self.query_vecs = {}
-
-        # missing_queries = set()
-        # for q in querylist:
-        #     if q not in queries_dict.keys():
-        #         missing_queries.add(q)
-        #     else:
-        #         self.query_vecs[q] = queryvecs_npy[queries_dict[q]]
-        # if len(missing_queries) > 0:
-        #     print('Following ' + str(
-        #         len(missing_queries)) + ' queries are present in qry_attn file but not in context json file')
-        #     print(
-        #         'The root cause is these queries are present in article.qrels without any / but in top-level, hier level'
-        #         'they are always present with /')
-        #     for q in missing_queries:
-        #         print(q)
-        # print('Init done')
-
     def build_input_data(self):
         X = []
         y = []

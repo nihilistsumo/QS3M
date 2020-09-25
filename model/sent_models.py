@@ -134,7 +134,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_loss = mseloss(ypred_test, y_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
-        print(m.cats.Wa[0])
+        print(m.cats.va)
         if torch.cuda.is_available():
             m.cuda()
     m.eval()

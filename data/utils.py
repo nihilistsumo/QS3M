@@ -117,6 +117,7 @@ class InputCATSDatasetBuilder:
             print(qid+' not present in query vecs dict')
             return None
         parapairs = []
+        paralist.sort()
         for i in range(len(paralist)-1):
             for j in range(i+1, len(paralist)):
                 p1 = paralist[i]

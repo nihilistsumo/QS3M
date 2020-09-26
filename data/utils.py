@@ -149,7 +149,7 @@ class InputSentenceCATSDatasetBuilder:
         self.queryids = list(queryids_npy)
         self.queryvecs_npy = queryvecs_npy
         self.query_attn_data = query_attn_data
-        self.max_seq_len = 15
+        self.max_seq_len = 10
         self.emb_len = 768
 
         self.query_indices = {}

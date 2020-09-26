@@ -77,9 +77,8 @@ class CATS_Attention(nn.Module):
         self.Xp2valid = self.Xp2[:, -1, :]
         self.Xp1 = self.Xp1[:, :self.emb_size, :]
         self.Xp2 = self.Xp2[:, :self.emb_size, :]
-        self.S1 = torch.mul(self.Xp1valid, torch.mm(
-            self.va, self.tanh(torch.mm(
-                self.Wa, torch.cat((torch.cat(seq * [self.Xq]).view(b, e, -1), self.Xp1), 1)))))
+        self.Xqp1 = torch.cat((torch.cat(seq * [self.Xq]).view(b, e, -1), self.Xp1), 1)
+        self.S1 = torch.mul(self.Xp1valid, torch.mm(self.va, self.tanh(torch.mm(self.Wa, self.Xqp1))))
         self.Xp1dash = torch.sum(torch.mul(
             (torch.exp(self.S1) / torch.sum(torch.exp(self.S1), 1)).view(b, 1, seq), self.Xp1), 2)
         self.S2 = torch.mul(self.Xp2valid, torch.mm(

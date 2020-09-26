@@ -68,7 +68,6 @@ class CATS_Attention(nn.Module):
         :return: Pairwise CATS scores of shape (mC2 X 1)
         '''
         b = Xq.shape[0]
-        e = Xq.shape[1]
         seq = Xp.shape[2]
         self.Xq = Xq
         self.Xp1 = Xp[:, :self.emb_size + 1, :]
@@ -77,13 +76,13 @@ class CATS_Attention(nn.Module):
         self.Xp2valid = self.Xp2[:, -1, :]
         self.Xp1 = self.Xp1[:, :self.emb_size, :]
         self.Xp2 = self.Xp2[:, :self.emb_size, :]
-        self.Xqp1 = torch.cat((torch.cat(seq * [self.Xq]).view(b, e, -1), self.Xp1), 1)
-        self.S1 = torch.mul(self.Xp1valid, torch.mm(self.va, self.tanh(torch.mm(self.Wa, self.Xqp1))))
+        self.Xqp1 = torch.cat((torch.cat(seq * [self.Xq]).view(b, self.emb_size, -1), self.Xp1), 1)
+        self.S1 = torch.mul(self.Xp1valid, torch.mm(self.tanh(torch.mm(self.Xqp1.permute(0,2,1).reshape(-1, 2*self.emb_size), self.Wa)), self.va).reshape(b, seq))
         self.Xp1dash = torch.sum(torch.mul(
             (torch.exp(self.S1) / torch.sum(torch.exp(self.S1), 1)).view(b, 1, seq), self.Xp1), 2)
         self.S2 = torch.mul(self.Xp2valid, torch.mm(
             self.va, self.tanh(torch.mm(
-                self.Wa, torch.cat((torch.cat(seq * [self.Xq]).view(b, e, -1), self.Xp2), 1)))))
+                self.Wa, torch.cat((torch.cat(seq * [self.Xq]).view(b, self.emb_size, -1), self.Xp2), 1)))))
         self.Xp2dash = torch.sum(torch.mul(
             (torch.exp(self.S2) / torch.sum(torch.exp(self.S2), 1)).view(b, 1, seq), self.Xp2), 2)
 

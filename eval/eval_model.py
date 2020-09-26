@@ -89,7 +89,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 true_labels.append(para_labels[paralist[i]])
             X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
             pair_baseline_scores = cos(X_page[:, 768:768 * 2], X_page[:, 768 * 2:])
-            pair_euclid_scores = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:])**2, 1)).numpy()
+            pair_euclid_scores = torch.sqrt(torch.sum((X_page[:, 768:768 * 2] - X_page[:, 768 * 2:])**2, 1)).numpy()
             pair_scores = model(X_page)
             pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
             pair_baseline_scores = (pair_baseline_scores - torch.min(pair_baseline_scores)) / (torch.max(pair_baseline_scores) - torch.min(pair_baseline_scores))

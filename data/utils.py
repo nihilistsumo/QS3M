@@ -198,8 +198,8 @@ class InputSentenceCATSDatasetBuilder:
         Xq = np.array(Xq)
         Xp = np.array(Xp)
         print('numpy conversion done')
-        Xq = torch.as_tensor(Xq)
-        Xp = torch.as_tensor(Xp)
+        Xq = torch.as_tensor(Xq, dtype=torch.float)
+        Xp = torch.as_tensor(Xp, dtype=torch.float)
         y = torch.tensor(y)
         print('Xq shape: ' + str(Xq.shape) + ', Xp shape: ' + str(Xp.shape) + ', y shape: ' + str(y.shape))
         return Xq, Xp, y

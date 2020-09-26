@@ -109,6 +109,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             base_sim_score = []
             euc_sim_score = []
             paralist.sort()
+            missing = 0
             for i in range(len(paralist)):
                 r = []
                 rbase = []
@@ -120,12 +121,16 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                         reuc.append(0.0)
                     elif i < j:
                         r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
-                        sim_score.append(1.0 - pair_score_dict[paralist[i]+ '_' + paralist[j]])
                         rbase.append(pair_baseline_score_dict[paralist[i]+ '_' + paralist[j]])
-                        base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[i]+ '_' + paralist[j]])
-                        reuc.append(pair_euclid_score_dict[paralist[i]+ '_' + paralist[j]])
-                        euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[i]+ '_' + paralist[j]])
-                        true_bin_label.append(all_parapairs[page][paralist[i]+ '_' + paralist[j]])
+                        reuc.append(pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
+
+                        if paralist[i]+ '_' + paralist[j] in all_parapairs[page].keys():
+                            true_bin_label.append(all_parapairs[page][paralist[i]+ '_' + paralist[j]])
+                            sim_score.append(1.0 - pair_score_dict[paralist[i] + '_' + paralist[j]])
+                            base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[i] + '_' + paralist[j]])
+                            euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
+                        else:
+                            missing += 1
                     else:
                         r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
                         rbase.append(pair_baseline_score_dict[paralist[j] + '_' + paralist[i]])
@@ -159,6 +164,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     print('Mean Base all-pair AUC score: %.5f' % np.mean(np.array(list(pagewise_base_auc.values()))))
     print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
     print('Mean Euclid all-pair AUC score: %.5f' % np.mean(np.array(list(pagewise_euc_auc.values()))))
+    print('total missing pairs: '+str(missing))
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')

@@ -70,6 +70,7 @@ class CATS_Attention(nn.Module):
         b = Xq.shape[0]
         e = Xq.shape[1]
         seq = Xp.shape[2]
+        self.Xq = Xq
         self.Xp1 = Xp[:, :self.emb_size + 1, :]
         self.Xp2 = Xp[:, self.emb_size + 1:, :]
         self.Xp1valid = self.Xp1[:, -1, :]

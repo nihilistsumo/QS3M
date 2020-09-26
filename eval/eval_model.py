@@ -124,8 +124,8 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                         rbase.append(pair_baseline_score_dict[paralist[i]+ '_' + paralist[j]])
                         reuc.append(pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
 
-                        if paralist[i]+ '_' + paralist[j] in all_parapairs[page].keys():
-                            true_bin_label.append(all_parapairs[page][paralist[i]+ '_' + paralist[j]])
+                        if paralist[i]+ '_' + paralist[j] in all_parapairs[page]['parapairs']:
+                            true_bin_label.append(all_parapairs[page]['labels'][all_parapairs[page]['parapairs'].index(paralist[i]+ '_' + paralist[j])])
                             sim_score.append(1.0 - pair_score_dict[paralist[i] + '_' + paralist[j]])
                             base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[i] + '_' + paralist[j]])
                             euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])

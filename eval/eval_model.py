@@ -123,14 +123,6 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                         r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
                         rbase.append(pair_baseline_score_dict[paralist[i]+ '_' + paralist[j]])
                         reuc.append(pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
-
-                        if paralist[i]+ '_' + paralist[j] in all_parapairs[page]['parapairs']:
-                            true_bin_label.append(all_parapairs[page]['labels'][all_parapairs[page]['parapairs'].index(paralist[i]+ '_' + paralist[j])])
-                            sim_score.append(1.0 - pair_score_dict[paralist[i] + '_' + paralist[j]])
-                            base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[i] + '_' + paralist[j]])
-                            euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
-                        else:
-                            missing += 1
                     else:
                         r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
                         rbase.append(pair_baseline_score_dict[paralist[j] + '_' + paralist[i]])
@@ -138,6 +130,20 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 dist_mat.append(r)
                 dist_base_mat.append(rbase)
                 dist_euc_mat.append(reuc)
+            for i in range(len(paralist)-1):
+                for j in range(i+1, len(paralist)):
+                    if paralist[i] + '_' + paralist[j] in all_parapairs[page]['parapairs']:
+                        true_bin_label.append(all_parapairs[page]['labels'][all_parapairs[page]['parapairs'].index(
+                            paralist[i] + '_' + paralist[j])])
+                        sim_score.append(1.0 - pair_score_dict[paralist[i] + '_' + paralist[j]])
+                        base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[i] + '_' + paralist[j]])
+                        euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
+                    else:
+                        true_bin_label.append(all_parapairs[page]['labels'][all_parapairs[page]['parapairs'].index(
+                            paralist[j] + '_' + paralist[i])])
+                        sim_score.append(1.0 - pair_score_dict[paralist[j] + '_' + paralist[i]])
+                        base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[j] + '_' + paralist[i]])
+                        euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[j] + '_' + paralist[i]])
             all_auc = roc_auc_score(true_bin_label, sim_score)
             base_all_auc = roc_auc_score(true_bin_label, base_sim_score)
             euc_all_auc = roc_auc_score(true_bin_label, euc_sim_score)
@@ -172,7 +178,7 @@ def main():
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.article.nodup.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.toplevel.nodup.qrels")
-    parser.add_argument('-ap', '--all_pairs', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.balanced.parapairs.json")
+    parser.add_argument('-ap', '--all_pairs', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by2test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by2test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by2test-context-title-qids.npy")

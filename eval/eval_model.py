@@ -142,7 +142,9 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
 
 def main():
+
     parser = argparse.ArgumentParser(description='Run CATS model')
+    '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
@@ -165,7 +167,7 @@ def main():
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
-    '''
+
 
     args = parser.parse_args()
     dat = args.data_dir

@@ -151,8 +151,8 @@ def main():
     parser.add_argument('-tv', '--test_pvecs', default="by2test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by2test-context-title-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-title-qvecs.npy")
-    parser.add_argument('-mt', '--model_type', default="scaled")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cavs_title_b32_l0.001_i5.model")
+    parser.add_argument('-mt', '--model_type', default="cats")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_title_b32_l0.00001_i3.model")
 
     args = parser.parse_args()
     dat = args.data_dir

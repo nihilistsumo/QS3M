@@ -17,9 +17,7 @@ import time
 import json
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels, all_parapairs_file):
-    with open(all_parapairs_file, 'r') as f:
-        all_parapairs = json.load(f)
+                 test_qvecs_file, article_qrels, top_qrels):
     model = CATSSimilarityModel(768, model_type)
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -73,9 +71,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_ari_score = {}
     pagewise_base_ari_score = {}
     pagewise_euc_ari_score = {}
-    pagewise_all_auc = {}
-    pagewise_base_auc = {}
-    pagewise_euc_auc = {}
+
     for page in page_paras.keys():
         print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
@@ -104,12 +100,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             dist_mat = []
             dist_base_mat = []
             dist_euc_mat = []
-            true_bin_label = []
-            sim_score = []
-            base_sim_score = []
-            euc_sim_score = []
             paralist.sort()
-            missing = 0
             for i in range(len(paralist)):
                 r = []
                 rbase = []
@@ -130,23 +121,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 dist_mat.append(r)
                 dist_base_mat.append(rbase)
                 dist_euc_mat.append(reuc)
-            for i in range(len(paralist)-1):
-                for j in range(i+1, len(paralist)):
-                    if paralist[i] + '_' + paralist[j] in all_parapairs[page]['parapairs']:
-                        true_bin_label.append(all_parapairs[page]['labels'][all_parapairs[page]['parapairs'].index(
-                            paralist[i] + '_' + paralist[j])])
-                        sim_score.append(1.0 - pair_score_dict[paralist[i] + '_' + paralist[j]])
-                        base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[i] + '_' + paralist[j]])
-                        euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[i] + '_' + paralist[j]])
-                    else:
-                        true_bin_label.append(all_parapairs[page]['labels'][all_parapairs[page]['parapairs'].index(
-                            paralist[j] + '_' + paralist[i])])
-                        sim_score.append(1.0 - pair_score_dict[paralist[j] + '_' + paralist[i]])
-                        base_sim_score.append(1.0 - pair_baseline_score_dict[paralist[j] + '_' + paralist[i]])
-                        euc_sim_score.append(1.0 - pair_euclid_score_dict[paralist[j] + '_' + paralist[i]])
-            all_auc = roc_auc_score(true_bin_label, sim_score)
-            base_all_auc = roc_auc_score(true_bin_label, base_sim_score)
-            euc_all_auc = roc_auc_score(true_bin_label, euc_sim_score)
+
             cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
             # cl = AgglomerativeClustering(n_clusters=8, affinity='precomputed', linkage='average')
             # cl = DBSCAN(eps=0.7, min_samples=3)
@@ -156,21 +131,15 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             ari_base_score = adjusted_rand_score(true_labels, cl_base_labels)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
-            print(page+' ARI: %.5f, Base ARI: %.5f, Euclid ARI: %.5f, test AUC: %.5f, Base AUC: %.5f, Euclid AUC: %.5f' %
-                  (ari_score, ari_base_score, ari_euc_score, all_auc, base_all_auc, euc_all_auc))
+            print(page+' ARI: %.5f, Base ARI: %.5f, Euclid ARI: %.5f' %
+                  (ari_score, ari_base_score, ari_euc_score))
             pagewise_ari_score[page] = ari_score
             pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
-            pagewise_all_auc[page] = all_auc
-            pagewise_base_auc[page] = base_all_auc
-            pagewise_euc_auc[page] = euc_all_auc
+
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
-    print('Mean all-pair AUC score: %.5f' % np.mean(np.array(list(pagewise_all_auc.values()))))
     print('Mean Baseline ARI score: %.5f' % np.mean(np.array(list(pagewise_base_ari_score.values()))))
-    print('Mean Base all-pair AUC score: %.5f' % np.mean(np.array(list(pagewise_base_auc.values()))))
     print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
-    print('Mean Euclid all-pair AUC score: %.5f' % np.mean(np.array(list(pagewise_euc_auc.values()))))
-    print('total missing pairs: '+str(missing))
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
@@ -178,7 +147,6 @@ def main():
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.article.nodup.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.toplevel.nodup.qrels")
-    parser.add_argument('-ap', '--all_pairs', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by2test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by2test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by2test-context-title-qids.npy")
@@ -190,7 +158,7 @@ def main():
     dat = args.data_dir
 
     eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
-                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels, args.all_pairs)
+                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels)
 
 if __name__ == '__main__':
     main()

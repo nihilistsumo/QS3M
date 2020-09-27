@@ -1,4 +1,4 @@
-from model.layers import CATS_Attention, Sent_Attention
+from model.layers import CATS_Attention, Sent_Attention, Sent_FixedCATS_Attention
 from data.utils import InputSentenceCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -13,14 +13,19 @@ from sklearn.metrics import roc_auc_score
 import argparse
 import math
 import time
+from model.models import CATSSimilarityModel
 
 class CATSSentenceModel(nn.Module):
-    def __init__(self, emb_size, n, model_type):
+    def __init__(self, emb_size, n, model_type, cats_path=None):
         super(CATSSentenceModel, self).__init__()
         if model_type == 'cats':
             self.cats = CATS_Attention(emb_size, n)
         elif model_type == 'sent':
             self.cats = Sent_Attention(emb_size, n)
+        elif model_type == 'fcats':
+            cats_model = CATSSimilarityModel(768, 'cats')
+            cats_model.load_state_dict(torch.load(cats_path))
+            self.cats = Sent_FixedCATS_Attention(emb_size, n, cats_model)
         else:
             self.cats = None
 
@@ -30,7 +35,7 @@ class CATSSentenceModel(nn.Module):
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,
               test_pvecs_file, train_qids_file, test_qids_file, train_qvecs_file, test_qvecs_file, use_cache,
-              n, max_seq, lrate, batch, epochs, save, model_type):
+              n, max_seq, lrate, batch, epochs, save, model_type, cats_path):
     if not use_cache:
         qry_attn_tr = []
         qry_attn_ts = []
@@ -118,7 +123,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_test = y_test.cuda()
     '''
 
-    m = CATSSentenceModel(768, n, model_type).to(device)
+    m = CATSSentenceModel(768, n, model_type, cats_path).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
@@ -178,6 +183,7 @@ def main():
     parser.add_argument('-bt', '--batch', type=int, default=32)
     parser.add_argument('-ep', '--epochs', type=int, default=10)
     parser.add_argument('-mt', '--model_type', default="cats")
+    parser.add_argument('-cp', '--cats_path', default='/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model')
     parser.add_argument('--cache', action='store_true')
     parser.add_argument('--save', action='store_true')
 
@@ -186,7 +192,7 @@ def main():
 
     run_model(dat+args.qry_attn_train, dat+args.qry_attn_test, dat+args.train_pids, dat+args.test_pids, dat+args.train_pvecs,
               dat+args.test_pvecs, dat+args.train_qids, dat+args.test_qids, dat+args.train_qvecs, dat+args.test_qvecs,
-              args.cache, args.param_n, args.max_seq, args.lrate, args.batch, args.epochs, args.save, args.model_type)
+              args.cache, args.param_n, args.max_seq, args.lrate, args.batch, args.epochs, args.save, args.model_type, args.cats_path)
 
 
 if __name__ == '__main__':

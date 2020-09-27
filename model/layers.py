@@ -44,9 +44,9 @@ class CATS(nn.Module):
         y_pred = self.forward(X_test)
         return y_pred
 
-class CATS_Attention(nn.Module):
+class Sent_Attention(nn.Module):
     def __init__(self, emb_size, n):
-        super(CATS_Attention, self).__init__()
+        super(Sent_Attention, self).__init__()
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:
@@ -151,6 +151,78 @@ class CATS_Attention(nn.Module):
         o = o.reshape(-1)
         return o
     '''
+    def num_flat_features(self, X):
+        size = X.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+    def predict(self, X_test):
+        y_pred = self.forward(X_test)
+        return y_pred
+
+
+class CATS_Attention(nn.Module):
+    def __init__(self, emb_size, n):
+        super(CATS_Attention, self).__init__()
+        if torch.cuda.is_available():
+            device = torch.device('cuda:0')
+        else:
+            device = torch.device('cpu')
+        self.emb_size = emb_size
+        self.n = n
+        self.LL1 = nn.Linear(emb_size, emb_size)
+        self.LL2 = nn.Linear(emb_size, emb_size)
+        self.LL3 = nn.Linear(5 * emb_size, 1)
+        self.Wa = nn.Parameter(torch.tensor(torch.randn(2 * emb_size, self.n), requires_grad=True).to(device))
+        self.va = nn.Parameter(torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device))
+        self.tanh = nn.Tanh()
+
+    def forward(self, Xq, Xp):
+        '''
+
+        :param Xq: context vec of shape (m X vec size)
+        :param Xp: para sent vecs of shape (m X 2*vec size + 2 X max seq len)
+        :return: Pairwise CATS scores of shape (mC2 X 1)
+        '''
+        b = Xq.shape[0]
+        seq = Xp.shape[2]
+        self.Xq = Xq
+        self.Xp1 = Xp[:, :self.emb_size + 1, :]
+        self.Xp2 = Xp[:, self.emb_size + 1:, :]
+        self.Xp1valid = self.Xp1[:, -1, :]
+        self.Xp2valid = self.Xp2[:, -1, :]
+        self.Xp1 = self.Xp1[:, :self.emb_size, :]
+        self.Xp2 = self.Xp2[:, :self.emb_size, :]
+
+        self.Xqp1 = torch.cat((self.Xq.reshape(b, self.emb_size, 1).expand(-1, -1, seq), self.Xp1), 1)
+        self.S1 = torch.mul(self.Xp1valid, torch.mm(self.tanh(
+            torch.mm(self.Xqp1.permute(0, 2, 1).reshape(-1, 2 * self.emb_size), self.Wa)), self.va).reshape(b, seq))
+        self.beta1 = torch.exp(self.S1) / torch.sum(torch.exp(self.S1), 1).unsqueeze(1).repeat(1, seq)
+        self.Xp1dash = torch.sum(torch.mul(self.beta1.reshape(b, 1, seq), self.Xp1), 2)
+
+        self.Xqp2 = torch.cat((self.Xq.reshape(b, self.emb_size, 1).expand(-1, -1, seq), self.Xp2), 1)
+        self.S2 = torch.mul(self.Xp2valid, torch.mm(self.tanh(
+            torch.mm(self.Xqp2.permute(0, 2, 1).reshape(-1, 2 * self.emb_size), self.Wa)), self.va).reshape(b, seq))
+        self.beta2 = torch.exp(self.S2) / torch.sum(torch.exp(self.S2), 1).unsqueeze(1).repeat(1, seq)
+        self.Xp2dash = torch.sum(torch.mul(self.beta2.reshape(b, 1, seq), self.Xp2), 2)
+
+        self.z1 = torch.abs(self.Xp1dash - self.Xq)
+        self.z2 = torch.abs(self.Xp2dash - self.Xq)
+        self.zdiff = torch.abs(self.Xp1dash - self.Xp2dash)
+        self.zp1 = torch.relu(self.LL2(self.LL1(self.Xp1dash)))
+        self.zp2 = torch.relu(self.LL2(self.LL1(self.Xp2dash)))
+        self.zql = torch.relu(self.LL2(self.LL1(self.Xq)))
+        self.zd = torch.abs(self.zp1 - self.zp2)
+        self.zdqp1 = torch.abs(self.zp1 - self.zql)
+        self.zdqp2 = torch.abs(self.zp2 - self.zql)
+        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        o = torch.relu(self.LL3(self.z))
+        o = o.reshape(-1)
+
+        return o
+
     def num_flat_features(self, X):
         size = X.size()[1:]  # all dimensions except the batch dimension
         num_features = 1

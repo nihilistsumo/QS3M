@@ -122,7 +122,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 dist_base_mat.append(rbase)
                 dist_euc_mat.append(reuc)
 
-            cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
+            cl = AgglomerativeClustering(n_clusters=5, affinity='precomputed', linkage='average')
             # cl = AgglomerativeClustering(n_clusters=8, affinity='precomputed', linkage='average')
             # cl = DBSCAN(eps=0.7, min_samples=3)
             cl_labels = cl.fit_predict(dist_mat)

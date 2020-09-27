@@ -134,7 +134,7 @@ class InputSentenceCATSDatasetBuilder:
         query_attn_data: [[query ID, para1 ID, para2 ID, int label], ....]
         '''
 
-    def __init__(self, query_attn_data, paraids_npy, paravecs_npy, queryids_npy, queryvecs_npy):
+    def __init__(self, query_attn_data, paraids_npy, paravecs_npy, queryids_npy, queryvecs_npy, max_seq_len=5):
         paralist = []
         querylist = []
         for data in query_attn_data:
@@ -150,7 +150,7 @@ class InputSentenceCATSDatasetBuilder:
         self.queryids = list(queryids_npy)
         self.queryvecs_npy = queryvecs_npy
         self.query_attn_data = query_attn_data
-        self.max_seq_len = 5
+        self.max_seq_len = max_seq_len
         self.emb_len = 768
 
         self.query_indices = {}

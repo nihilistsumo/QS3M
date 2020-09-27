@@ -25,7 +25,7 @@ class CATSSentenceModel(nn.Module):
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,
               test_pvecs_file, train_qids_file, test_qids_file, train_qvecs_file, test_qvecs_file, use_cache,
-              n, lrate, batch, epochs, save):
+              n, max_seq, lrate, batch, epochs, save):
     if not use_cache:
         qry_attn_tr = []
         qry_attn_ts = []
@@ -167,6 +167,7 @@ def main():
     parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
     parser.add_argument('-trqv', '--train_qvecs', default="half-y1train-context-qvecs.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
+    parser.add_argument('-seq', '--max_seq', default=5)
     parser.add_argument('-np', '--param_n', type=int, default=32)
     parser.add_argument('-lr', '--lrate', type=float, default=0.0001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
@@ -179,7 +180,7 @@ def main():
 
     run_model(dat+args.qry_attn_train, dat+args.qry_attn_test, dat+args.train_pids, dat+args.test_pids, dat+args.train_pvecs,
               dat+args.test_pvecs, dat+args.train_qids, dat+args.test_qids, dat+args.train_qvecs, dat+args.test_qvecs,
-              args.cache, args.param_n, args.lrate, args.batch, args.epochs, args.save)
+              args.cache, args.param_n, args.max_seq, args.lrate, args.batch, args.epochs, args.save)
 
 
 if __name__ == '__main__':

@@ -59,6 +59,7 @@ class CATS_Attention(nn.Module):
         self.Wa = nn.Parameter(torch.tensor(torch.randn(2*emb_size, self.n), requires_grad=True).to(device))
         self.va = nn.Parameter(torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device))
         self.tanh = nn.Tanh()
+        self.cos = nn.CosineSimilarity()
 
     def forward(self, Xq, Xp):
         '''
@@ -89,6 +90,7 @@ class CATS_Attention(nn.Module):
         self.beta2 = torch.exp(self.S2) / torch.sum(torch.exp(self.S2), 1).unsqueeze(1).repeat(1, seq)
         self.Xp2dash = torch.sum(torch.mul(self.beta2.reshape(b, 1, seq), self.Xp2), 2)
 
+        '''
         self.z1 = torch.abs(self.Xp1dash - self.Xq)
         self.z2 = torch.abs(self.Xp2dash - self.Xq)
         self.zdiff = torch.abs(self.Xp1dash - self.Xp2dash)
@@ -100,6 +102,9 @@ class CATS_Attention(nn.Module):
         self.zdqp2 = torch.abs(self.zp2 - self.zql)
         self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
         o = torch.relu(self.LL3(self.z))
+        o = o.reshape(-1)
+        '''
+        o = self.cos(self.Xp1dash, self.Xp2dash)
         o = o.reshape(-1)
         return o
 

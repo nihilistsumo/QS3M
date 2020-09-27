@@ -16,6 +16,43 @@ import math
 import time
 import json
 
+def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_pvecs_file, test_qids_file,
+                 test_qvecs_file):
+    model = CATSSimilarityModel(768, model_type)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    qry_attn_ts = []
+    with open(parapairs_data, 'r') as f:
+        parapairs = json.load(f)
+    for page in parapairs.keys():
+        qid = 'Query:'+sha1(str.encode(page)).hexdigest()
+        for i in range(len(parapairs[page]['parapairs'])):
+            p1 = parapairs[page]['parapairs'][i].split('_')[0]
+            p2 = parapairs[page]['parapairs'][i].split('_')[1]
+            qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
+    test_pids = np.load(test_pids_file)
+    test_pvecs = np.load(test_pvecs_file)
+    test_qids = np.load(test_qids_file)
+    test_qvecs = np.load(test_qvecs_file)
+    test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+    X_test, y_test = test_data_builder.build_input_data()
+
+    model.cpu()
+    ypred_test = model(X_test)
+    mseloss = nn.MSELoss()
+    test_loss = mseloss(ypred_test, y_test)
+    test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+    print('\n\nTest loss: %.5f, Test all pairs auc: %.5f' % (test_loss.item(), test_auc))
+
+    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+    y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
+    cos_auc = roc_auc_score(y_test, y_cos)
+    print('Test cosine all pairs auc: %.5f' % cos_auc)
+    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
+    y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+    euclid_auc = roc_auc_score(y_test, y_euclid)
+    print('Test euclidean all pairs auc: %.5f' % euclid_auc)
+
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels):
     model = CATSSimilarityModel(768, model_type)
@@ -144,11 +181,12 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
 def main():
 
     parser = argparse.ArgumentParser(description='Run CATS model')
-    '''
+
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
@@ -156,7 +194,7 @@ def main():
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
-    
+    '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
@@ -168,7 +206,7 @@ def main():
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
     '''
-
+    '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels',
@@ -183,10 +221,12 @@ def main():
     parser.add_argument('-mp', '--model_path',
                         default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
-
+    '''
     args = parser.parse_args()
     dat = args.data_dir
 
+    eval_all_pairs(args.parapairs, args.model_path, args.model_type, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
+                 dat+args.test_qvecs)
     eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.art_qrels, args.hier_qrels)
 

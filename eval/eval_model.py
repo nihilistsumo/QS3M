@@ -79,16 +79,16 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     mseloss = nn.MSELoss()
     test_loss = mseloss(ypred_test, y_test)
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-    print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
+    print('\n\nTest loss: %.5f, Test balanced auc: %.5f' % (test_loss.item(), test_auc))
 
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
     y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
     cos_auc = roc_auc_score(y_test, y_cos)
-    print('Test cosine auc: %.5f' % cos_auc)
+    print('Test cosine balanced auc: %.5f' % cos_auc)
     y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:])**2, 1)).numpy()
     y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
-    print('Test euclidean auc: %.5f' % euclid_auc)
+    print('Test euclidean balanced auc: %.5f' % euclid_auc)
 
     page_paras = read_art_qrels(article_qrels)
     para_labels = {}
@@ -198,7 +198,7 @@ def main():
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
     parser.add_argument('-pp', '--parapairs',
                         default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1train-all-pids.npy")

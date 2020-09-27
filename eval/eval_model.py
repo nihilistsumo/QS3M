@@ -144,6 +144,18 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
+    parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")
+    parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")
+    parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
+    parser.add_argument('-mt', '--model_type', default="cats")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+
+    '''
+    parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.article.nodup.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.toplevel.nodup.qrels")
@@ -153,6 +165,7 @@ def main():
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+    '''
 
     args = parser.parse_args()
     dat = args.data_dir

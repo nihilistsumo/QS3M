@@ -158,13 +158,13 @@ def main():
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn.tsv")
-    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.article.nodup.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.toplevel.nodup.qrels")
-    parser.add_argument('-tp', '--test_pids', default="by2test-all-pids.npy")
-    parser.add_argument('-tv', '--test_pvecs', default="by2test-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by2test-context-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
+    parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
+    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
+    parser.add_argument('-tp', '--test_pids', default="by1train-allpos-pids.npy")
+    parser.add_argument('-tv', '--test_pvecs', default="by1train-allpos-paravecs.npy")
+    parser.add_argument('-tq', '--test_qids', default="by1train-context-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 

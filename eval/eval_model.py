@@ -172,7 +172,7 @@ def main():
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.article.nodup.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.toplevel.nodup.qrels")
-    parser.add_argument('-ap', '--all_pairs', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.parapairs.json")
+    parser.add_argument('-ap', '--all_pairs', default="/home/sk1105/sumanta/trec_dataset/benchmarkY2/benchmarkY2test-goldpassages.onlywiki.balanced.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by2test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by2test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by2test-context-title-qids.npy")

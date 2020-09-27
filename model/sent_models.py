@@ -168,7 +168,7 @@ def main():
     parser.add_argument('-trqv', '--train_qvecs', default="by1train-context-qvecs.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
     parser.add_argument('-np', '--param_n', type=int, default=32)
-    parser.add_argument('-lr', '--lrate', type=float, default=0.0001)
+    parser.add_argument('-lr', '--lrate', type=float, default=0.00001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
     parser.add_argument('-ep', '--epochs', type=int, default=10)
     parser.add_argument('--cache', action='store_true')

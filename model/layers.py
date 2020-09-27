@@ -222,7 +222,7 @@ class Sent_FixedCATS_Attention(nn.Module):
             torch.mm(self.Xqp2.permute(0, 2, 1).reshape(-1, 2 * self.emb_size), self.Wa)), self.va).reshape(b, seq))
         self.beta2 = torch.exp(self.S2) / torch.sum(torch.exp(self.S2), 1).unsqueeze(1).repeat(1, seq)
         self.Xp2dash = torch.sum(torch.mul(self.beta2.reshape(b, 1, seq), self.Xp2), 2)
-        X = torch.cat((self.origXq, self.Xp1dash, self.Xp2dash))
+        X = torch.cat((self.origXq, self.Xp1dash, self.Xp2dash), 1)
 
         o = self.cats(X)
         o = o.reshape(-1)

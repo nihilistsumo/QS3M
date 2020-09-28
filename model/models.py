@@ -1,4 +1,4 @@
-from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
+from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan, CATS_Ablation
 from data.utils import InputCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -55,6 +55,8 @@ class CATSSimilarityModel(nn.Module):
             self.cats = CATS_Scaled(emb_size)
         elif cats_type == 'qscale':
             self.cats = CATS_QueryScaler(emb_size)
+        elif cats_type == 'abl':
+            self.cats = CATS_Ablation(emb_size)
         else:
             self.cats = None
 

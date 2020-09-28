@@ -204,10 +204,10 @@ def main():
                         default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1train-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1train-context-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-qvecs.npy")
-    parser.add_argument('-mt', '--model_type', default="scaled")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cavs_leadpara_b32_l0.001_i5.model")
+    parser.add_argument('-tq', '--test_qids', default="by1train-context-meanall-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-meanall-qvecs.npy")
+    parser.add_argument('-mt', '--model_type', default="cats")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_meanall_b32_l0.00001_i3.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

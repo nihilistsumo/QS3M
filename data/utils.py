@@ -163,6 +163,7 @@ class InputSentenceCATSDatasetBuilder:
         y = []
         samples = len(self.query_attn_data)
         i = 0
+        pairs = []
         for qid, pid1, pid2, label in self.query_attn_data:
             if qid in self.query_indices.keys():
                 # row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
@@ -193,6 +194,10 @@ class InputSentenceCATSDatasetBuilder:
                 y.append(float(label))
                 Xq.append(qvec)
                 Xp.append(dat_mat.transpose())
+                if pid1 < pid2:
+                    pairs.append(pid1+'_'+pid2)
+                else:
+                    pairs.append(pid2+'_'+pid1)
                 i += 1
                 if i % 10000 == 0:
                     print(str(i) + ' samples processed out of '+str(samples))
@@ -203,7 +208,7 @@ class InputSentenceCATSDatasetBuilder:
         Xp = torch.as_tensor(Xp, dtype=torch.float)
         y = torch.tensor(y)
         print('Xq shape: ' + str(Xq.shape) + ', Xp shape: ' + str(Xp.shape) + ', y shape: ' + str(y.shape))
-        return Xq, Xp, y
+        return Xq, Xp, y, pairs
 
     def build_cluster_data(self, qid, paralist):
         all_para_vec_dict = {}

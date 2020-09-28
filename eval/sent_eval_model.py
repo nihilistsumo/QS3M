@@ -77,7 +77,7 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
         test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs,
                                                             max_seq_len)
-        X_test_q, X_test_p, y_test = test_data_builder.build_input_data()
+        X_test_q, X_test_p, y_test, pairs = test_data_builder.build_input_data()
         model.cpu()
         pair_scores = model(X_test_q, X_test_p)
 
@@ -88,8 +88,8 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
             true_labels.append(para_labels[paralist[i]])
         pair_scores = (pair_scores - torch.min(pair_scores)) / (torch.max(pair_scores) - torch.min(pair_scores))
         pair_score_dict = {}
-        for i in range(len(parapairs)):
-            pair_score_dict[parapairs[i]] = 1 - pair_scores[i].item()
+        for i in range(len(pairs)):
+            pair_score_dict[pairs[i]] = 1 - pair_scores[i].item()
         dist_mat = []
         paralist.sort()
         for i in range(len(paralist)):

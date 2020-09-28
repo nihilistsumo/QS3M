@@ -1,5 +1,6 @@
 from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
 from model.models import CATSSimilarityModel
+from model.sent_models import CATSSentenceModel
 from data.utils import InputCATSDatasetBuilder, read_art_qrels
 import torch
 torch.manual_seed(42)

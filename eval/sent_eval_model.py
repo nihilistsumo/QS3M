@@ -150,8 +150,8 @@ def main():
     parser.add_argument('-cp', '--cats_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
     parser.add_argument('-seq', '--max_seq', type=int, default=10)
     parser.add_argument('-pn', '--param_n', type=int, default=32)
-    parser.add_argument('-mt', '--model_type', default="scaled")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cavs_leadpara_b32_l0.001_i5.model")
+    parser.add_argument('-mt', '--model_type', default="fcats")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/sentcats_maxlen_10_leadpara_b32_l0.0001_i6.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

@@ -50,7 +50,7 @@ class CATS_Ablation(nn.Module):
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
-        self.LL3 = nn.Linear(5 * emb_size, 1)
+        self.LL3 = nn.Linear(3 * emb_size, 1)
 
     def forward(self, X):
         '''

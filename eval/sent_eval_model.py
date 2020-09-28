@@ -97,7 +97,7 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
             for j in range(len(paralist)):
                 if i == j:
                     r.append(0.0)
-                elif i < j:
+                elif paralist[i] < paralist[j]:
                     r.append(pair_score_dict[paralist[i] + '_' + paralist[j]])
                 else:
                     r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])

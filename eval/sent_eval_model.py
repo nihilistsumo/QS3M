@@ -17,11 +17,8 @@ import math
 import time
 import json
 
-def eval_all_pairs(parapairs_data, model_path, model_type, cats_path, test_pids_file, test_pvecs_file, test_qids_file,
+def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, max_seq_len, n):
-    model = CATSSentenceModel(768, n, model_type, cats_path)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
     qry_attn_ts = []
     with open(parapairs_data, 'r') as f:
         parapairs = json.load(f)
@@ -45,11 +42,8 @@ def eval_all_pairs(parapairs_data, model_path, model_type, cats_path, test_pids_
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
     print('\n\nTest loss: %.5f, Test all pairs auc: %.5f' % (test_loss.item(), test_auc))
 
-def eval_cluster(parapairs_data, model_path, model_type, cats_path, test_pids_file, test_pvecs_file, test_qids_file,
+def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, max_seq_len, n):
-    model = CATSSentenceModel(768, n, model_type, cats_path)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
 
     test_pids = np.load(test_pids_file)
     test_pvecs = np.load(test_pvecs_file)
@@ -173,9 +167,13 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    eval_all_pairs(args.parapairs, args.model_path, args.model_type, args.cats_path, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
+    model = CATSSentenceModel(768, args.param_n, args.model_type, args.cats_path)
+    model.load_state_dict(torch.load(args.model_path))
+    model.eval()
+
+    eval_all_pairs(args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.max_seq, args.param_n)
-    eval_cluster(args.parapairs, args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
+    eval_cluster(args.parapairs, model, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.art_qrels, args.hier_qrels, args.max_seq, args.param_n)
 
 if __name__ == '__main__':

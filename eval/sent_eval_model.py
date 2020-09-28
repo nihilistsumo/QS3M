@@ -33,7 +33,7 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
     test_qids = np.load(test_qids_file)
     test_qvecs = np.load(test_qvecs_file)
     test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
-    X_test_q, X_test_p, y_test = test_data_builder.build_input_data()
+    X_test_q, X_test_p, y_test, pairs = test_data_builder.build_input_data()
 
     model.cpu()
     ypred_test = model(X_test_q, X_test_p)

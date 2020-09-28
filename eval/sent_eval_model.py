@@ -43,7 +43,7 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
     print('\n\nTest loss: %.5f, Test all pairs auc: %.5f' % (test_loss.item(), test_auc))
 
 def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels, max_seq_len, n):
+                 test_qvecs_file, article_qrels, top_qrels, max_seq_len):
 
     test_pids = np.load(test_pids_file)
     test_pvecs = np.load(test_pvecs_file)
@@ -71,9 +71,12 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
     for page in parapairs.keys():
         qry_attn_ts = []
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
+        paras_in_pairs = set()
         for i in range(len(parapairs[page]['parapairs'])):
             p1 = parapairs[page]['parapairs'][i].split('_')[0]
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
+            paras_in_pairs.add(p1)
+            paras_in_pairs.add(p2)
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
         test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs,
                                                             max_seq_len)
@@ -81,7 +84,7 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
         model.cpu()
         pair_scores = model(X_test_q, X_test_p)
 
-        paralist = page_paras[page]
+        paralist = list(paras_in_pairs)
 
         true_labels = []
         for i in range(len(paralist)):
@@ -174,7 +177,7 @@ def main():
     eval_all_pairs(args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.max_seq, args.param_n)
     eval_cluster(args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
-                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels, args.max_seq, args.param_n)
+                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels, args.max_seq)
 
 if __name__ == '__main__':
     main()

@@ -16,6 +16,7 @@ import argparse
 import math
 import time
 import json
+from scipy.stats import ttest_rel
 
 def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file):
@@ -109,6 +110,8 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_ari_score = {}
     pagewise_base_ari_score = {}
     pagewise_euc_ari_score = {}
+    anchor_ari_scores = []
+    cand_ari_scores = []
 
     for page in page_paras.keys():
         print('Going to cluster '+page)
@@ -174,10 +177,14 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             pagewise_ari_score[page] = ari_score
             pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
+            anchor_ari_scores.append(ari_euc_score)
+            cand_ari_scores.append(ari_score)
 
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
     print('Mean Baseline ARI score: %.5f' % np.mean(np.array(list(pagewise_base_ari_score.values()))))
     print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
+    paired_ttest = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest[0], paired_ttest[1]) )
 
 def main():
 
@@ -190,10 +197,10 @@ def main():
     parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1test-context-title-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-title-qvecs.npy")
+    parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_title_b32_l0.00001_i3.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

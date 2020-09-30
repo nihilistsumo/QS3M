@@ -56,18 +56,24 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, article_q
         for i in range(len(paralist)):
             true_labels.append(para_labels[paralist[i]])
         parapairs = []
+        labels = []
+        '''
         for i in range(len(paralist)-1):
             for j in range(i+1, len(paralist)):
                 p1 = paralist[i]
                 p2 = paralist[j]
                 parapairs.append(p1+'_'+p2)
+        '''
+        for i in range(len(parapairs_data[page]['parapairs'])):
+            parapairs.append(parapairs_data[page]['parapairs'][i])
+            labels.append(parapairs_data[page]['labels'][i])
         pair_scores = [jaccard(ptext_dict[parapairs[i].split('_')[0]], ptext_dict[parapairs[i].split('_')[1]])
                        for i in range(len(parapairs))]
         #true_labels = [parapairs_data[page]['labels'][i] for i in range(len(parapairs))]
         true_labels = []
         for i in range(len(paralist)):
             true_labels.append(para_labels[paralist[i]])
-        page_auc.append(roc_auc_score(true_labels, pair_scores))
+        page_auc.append(roc_auc_score(labels, pair_scores))
         pair_scores = [(p - min(pair_scores)) / (max(pair_scores) - min(pair_scores)) for p in pair_scores]
         pair_score_dict = {}
         for i in range(len(parapairs)):

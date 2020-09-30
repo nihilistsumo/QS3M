@@ -185,7 +185,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
     paired_ttest = ttest_rel(anchor_ari_scores, cand_ari_scores)
     print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest[0], paired_ttest[1]))
-    with open('/home/sk1105/sumanta/CATS_data/anchor_euc_y1test_toplevel.json', 'w') as f:
+    with open('/home/sk1105/sumanta/CATS_data/anchor_euc_y1test_hier.json', 'w') as f:
         json.dump(pagewise_euc_ari_score, f)
 
 def main():
@@ -208,7 +208,7 @@ def main():
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
     parser.add_argument('-pp', '--parapairs',
                         default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")

@@ -1,4 +1,5 @@
 from sklearn.metrics import roc_auc_score, adjusted_rand_score
+from sklearn.feature_extraction.text import TfidfVectorizer
 from data.utils import read_art_qrels, InputCATSDatasetBuilder
 from sklearn.cluster import AgglomerativeClustering
 import numpy as np
@@ -6,11 +7,27 @@ import json
 from hashlib import sha1
 import torch
 
+tfidf_vec_dict = {}
+
 def jaccard(p1text, p2text):
     a = set(p1text.split())
     b = set(p2text.split())
     c = a.intersection(b)
     return float(len(c)) / (len(a) + len(b) - len(c))
+
+def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
+    if len(tfidf_vec_dict) < 1:
+        pid_list = list(paratext_dict.keys())
+        corpus = []
+        for i in range(len(pid_list)):
+            corpus.append(paratext_dict[pid_list[i]])
+        tfidf = TfidfVectorizer()
+        vecs = tfidf.fit_transform(corpus)
+        for i in range(len(pid_list)):
+            tfidf_vec_dict[pid_list[i]] = vecs[i]
+    a = tfidf_vec_dict[pid1]
+    b = tfidf_vec_dict[pid2]
+    return np.dot(a,b)/(np.sqrt(np.sum(a**2))*np.sqrt(np.sum(b**2)))
 
 def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels):
     all_auc = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
@@ -38,7 +55,8 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
     for qid, pid1, pid2, label in qry_attn_ts:
         if qid in test_qids:
             y.append(float(label))
-            y_score.append(jaccard(ptext_dict[pid1], ptext_dict[pid2]))
+            #y_score.append(jaccard(ptext_dict[pid1], ptext_dict[pid2]))
+            y_score.append(tfidf_cosine_similarity(pid1, pid2, ptext_dict))
     test_auc = roc_auc_score(y, y_score)
     print('\n\nTest all pairs auc: %.5f' % test_auc)
     return test_auc
@@ -64,7 +82,8 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
     for qid, pid1, pid2, label in qry_attn_ts:
         if qid in test_qids:
             y.append(float(label))
-            y_score.append(jaccard(ptext_dict[pid1], ptext_dict[pid2]))
+            #y_score.append(jaccard(ptext_dict[pid1], ptext_dict[pid2]))
+            y_score.append(tfidf_cosine_similarity(pid1, pid2, ptext_dict))
     test_auc = roc_auc_score(y, y_score)
     print('\n\nTest balanced auc: %.5f' % test_auc)
 

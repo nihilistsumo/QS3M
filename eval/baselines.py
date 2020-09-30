@@ -33,7 +33,6 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_qids
     all_auc = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
     bal_auc, mean_ari = eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels)
     print("All AUC: %.5f, Balanced AUC: %.5f, mean ARI: %.5f" %(all_auc, bal_auc, mean_ari))
-    tfidf_vec_dict = {}
 
 def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
     ptext_dict = {}
@@ -151,20 +150,25 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
     return test_auc, mean_ari
 
 def main():
-    eval_baseline('/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json',
-                  '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/by1test_paratext/by1test_paratext.tsv',
-                  '/home/sk1105/sumanta/CATS_data/by1test-qry-attn-bal-allpos-for-eval.tsv',
-                  '/home/sk1105/sumanta/CATS_data/by1test-context-qids.npy',
-                  '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels',
-                  '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels')
+    dataset = 'train'
+    level = 'toplevel'
+    if dataset == 'train':
+        eval_baseline(
+            '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json',
+            '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/by1train_paratext/by1train_paratext.tsv',
+            '/home/sk1105/sumanta/CATS_data/by1train-qry-attn-bal-allpos.tsv',
+            '/home/sk1105/sumanta/CATS_data/by1train-context-qids.npy',
+            '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels',
+            '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-'+level+'.qrels')
+    else:
+        eval_baseline(
+            '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json',
+            '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/by1test_paratext/by1test_paratext.tsv',
+            '/home/sk1105/sumanta/CATS_data/by1test-qry-attn-bal-allpos-for-eval.tsv',
+            '/home/sk1105/sumanta/CATS_data/by1test-context-qids.npy',
+            '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels',
+            '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-'+level+'.qrels')
 
-    eval_baseline(
-        '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json',
-        '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/by1train_paratext/by1train_paratext.tsv',
-        '/home/sk1105/sumanta/CATS_data/by1train-qry-attn-bal-allpos.tsv',
-        '/home/sk1105/sumanta/CATS_data/by1train-context-qids.npy',
-        '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels',
-        '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels')
 
 if __name__ == '__main__':
     main()

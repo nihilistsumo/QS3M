@@ -16,8 +16,8 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, article_q
     ptext_dict = {}
     with open(test_ptext_file, 'r') as f:
         for l in f:
-            if len(l.split(' ')) > 1:
-                ptext_dict[l.split(' ')[0]] = l.split(' ')[1].strip()
+            if len(l.split('\t')) > 1:
+                ptext_dict[l.split('\t')[0]] = l.split('\t')[1].strip()
     qry_attn_ts = []
     with open(qry_attn_file_test, 'r') as tsf:
         f = True

@@ -104,8 +104,8 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
             X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
-            pair_scores = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs]
-            pair_scores = (pair_scores - torch.min(pair_scores))/(torch.max(pair_scores) - torch.min(pair_scores))
+            pair_scores = np.array([jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs])
+            pair_scores = (pair_scores - np.min(pair_scores))/(np.max(pair_scores) - np.min(pair_scores))
             pair_score_dict = {}
             for i in range(len(parapairs)):
                 pair_score_dict[parapairs[i]] = 1-pair_scores[i]

@@ -39,7 +39,7 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
     for qid, pid1, pid2, label in qry_attn_ts:
         if qid in test_qids:
             y.append(float(label))
-            y_score.append(jaccard(ptext_dict[p1], ptext_dict[p2]))
+            y_score.append(jaccard(ptext_dict[pid1], ptext_dict[pid2]))
     test_auc = roc_auc_score(y, y_score)
     print('\n\nTest all pairs auc: %.5f' % test_auc)
 

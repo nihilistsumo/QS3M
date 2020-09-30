@@ -16,7 +16,7 @@ def jaccard(p1text, p2text):
     return float(len(c)) / (len(a) + len(b) - len(c))
 
 def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
-    if len(tfidf_vec_dict) < 1:
+    if pid1 not in tfidf_vec_dict.keys() < 1:
         pid_list = list(paratext_dict.keys())
         corpus = []
         for i in range(len(pid_list)):

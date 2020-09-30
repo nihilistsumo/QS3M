@@ -64,7 +64,6 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
     test_qvecs = np.load(test_qvecs_file)
 
     test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
-    X_test, y_test = test_data_builder.build_input_data()
 
     y = []
     y_score = []
@@ -123,8 +122,6 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
                 dist_mat.append(r)
 
             cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
-            # cl = AgglomerativeClustering(n_clusters=8, affinity='precomputed', linkage='average')
-            # cl = DBSCAN(eps=0.7, min_samples=3)
             cl_labels = cl.fit_predict(dist_mat)
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             print(page+' ARI: %.5f' % ari_score)
@@ -142,6 +139,17 @@ def main():
                   '/home/sk1105/sumanta/CATS_data/by1test-context-qvecs.npy',
                   '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels',
                   '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels')
+
+    eval_baseline(
+        '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json',
+        '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/by1train_paratext/by1train_paratext.tsv',
+        '/home/sk1105/sumanta/CATS_data/by1train-qry-attn-bal-allpos.tsv',
+        '/home/sk1105/sumanta/CATS_data/by1train-all-pids.npy',
+        '/home/sk1105/sumanta/CATS_data/by1train-all-paravecs.npy',
+        '/home/sk1105/sumanta/CATS_data/by1train-context-qids.npy',
+        '/home/sk1105/sumanta/CATS_data/by1train-context-qvecs.npy',
+        '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels',
+        '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels')
 
 if __name__ == '__main__':
     main()

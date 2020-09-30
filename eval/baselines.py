@@ -14,9 +14,10 @@ def jaccard(p1text, p2text):
 
 def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels):
-    eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
-    eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
+    all_auc = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
+    bal_auc, mean_ari = eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels)
+    print("All AUC: %.5f, Balanced AUC: %.5f, mean ARI: %.5f" %(all_auc, bal_auc, mean_ari))
 
 def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
     ptext_dict = {}
@@ -42,6 +43,7 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
             y_score.append(jaccard(ptext_dict[pid1], ptext_dict[pid2]))
     test_auc = roc_auc_score(y, y_score)
     print('\n\nTest all pairs auc: %.5f' % test_auc)
+    return test_auc
 
 def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels):
@@ -126,8 +128,9 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             print(page+' ARI: %.5f' % ari_score)
             pagewise_ari_score[page] = ari_score
-
-    print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
+    mean_ari = np.mean(np.array(list(pagewise_ari_score.values())))
+    print('Mean ARI score: %.5f' % mean_ari)
+    return test_auc, mean_ari
 
 def main():
     eval_baseline('/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json',

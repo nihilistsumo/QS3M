@@ -136,7 +136,7 @@ def main():
     eval_baseline('/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json',
                   '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/by1test_paratext/by1test_paratext.tsv',
                   '/home/sk1105/sumanta/CATS_data/by1test-qry-attn-bal-allpos-for-eval.tsv',
-                  '/home/sk1105/sumanta/CATS_data/by1test-all-pids.npy'
+                  '/home/sk1105/sumanta/CATS_data/by1test-all-pids.npy',
                   '/home/sk1105/sumanta/CATS_data/by1test-all-paravecs.npy',
                   '/home/sk1105/sumanta/CATS_data/by1test-context-qids.npy',
                   '/home/sk1105/sumanta/CATS_data/by1test-context-qvecs.npy',

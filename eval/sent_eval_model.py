@@ -114,6 +114,8 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
         print(page + ' ARI: %.5f' % ari_score)
         pagewise_ari_score[page] = ari_score
 
+    with open('/home/sk1105/sumanta/CATS_data/sentCats_y1test_hier.json', 'w') as f:
+        json.dump(pagewise_ari_score, f)
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
 
 def main():

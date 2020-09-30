@@ -107,7 +107,6 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
         page_num_sections[page] = len(sec)
 
     pagewise_ari_score = {}
-
     for page in page_paras.keys():
         print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
@@ -131,6 +130,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
                 [tfidf_cosine_similarity(pp.split('_')[0], pp.split('_')[1], ptext_dict) for pp in parapairs])
             pair_scores = (pair_scores - np.min(pair_scores))/(np.max(pair_scores) - np.min(pair_scores))
             pair_score_dict = {}
+            pair_baseline_score_dict = {}
             for i in range(len(parapairs)):
                 pair_score_dict[parapairs[i]] = 1-pair_scores[i]
             dist_mat = []
@@ -151,6 +151,8 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             #print(page+' ARI: %.5f' % ari_score)
             pagewise_ari_score[page] = ari_score
+    with open('/home/sk1105/sumanta/CATS_data/tfidf_y1test_hier.json', 'w') as f:
+        json.dump(pagewise_ari_score, f)
     mean_ari = np.mean(np.array(list(pagewise_ari_score.values())))
     print('Mean ARI score: %.5f' % mean_ari)
     return test_auc, mean_ari

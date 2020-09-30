@@ -12,11 +12,9 @@ def jaccard(p1text, p2text):
     c = a.intersection(b)
     return float(len(c)) / (len(a) + len(b) - len(c))
 
-def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels):
+def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels):
     all_auc = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
-    bal_auc, mean_ari = eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels)
+    bal_auc, mean_ari = eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels)
     print("All AUC: %.5f, Balanced AUC: %.5f, mean ARI: %.5f" %(all_auc, bal_auc, mean_ari))
 
 def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
@@ -45,8 +43,7 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
     print('\n\nTest all pairs auc: %.5f' % test_auc)
     return test_auc
 
-def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels):
+def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels):
     qry_attn_ts = []
     with open(qry_attn_file_test, 'r') as tsf:
         f = True
@@ -60,12 +57,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
         for l in f:
             if len(l.split('\t')) > 1:
                 ptext_dict[l.split('\t')[0]] = l.split('\t')[1].strip()
-    test_pids = np.load(test_pids_file)
-    test_pvecs = np.load(test_pvecs_file)
-    test_qids = np.load(test_qids_file)
-    test_qvecs = np.load(test_qvecs_file)
-
-    test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+    test_qids = list(np.load(test_qids_file))
 
     y = []
     y_score = []
@@ -96,7 +88,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
     for page in page_paras.keys():
         print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
-        if qid not in test_data_builder.query_vecs.keys():
+        if qid not in test_qids:
             print(qid + ' not present in query vecs dict')
         else:
             paralist = page_paras[page]
@@ -104,7 +96,13 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_pids_file, test_pvecs
             true_labels = []
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
-            X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
+            parapairs = []
+            paralist.sort()
+            for i in range(len(paralist) - 1):
+                for j in range(i + 1, len(paralist)):
+                    p1 = paralist[i]
+                    p2 = paralist[j]
+                    parapairs.append(p1 + '_' + p2)
             pair_scores = np.array([jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs])
             pair_scores = (pair_scores - np.min(pair_scores))/(np.max(pair_scores) - np.min(pair_scores))
             pair_score_dict = {}
@@ -136,10 +134,7 @@ def main():
     eval_baseline('/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json',
                   '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/by1test_paratext/by1test_paratext.tsv',
                   '/home/sk1105/sumanta/CATS_data/by1test-qry-attn-bal-allpos-for-eval.tsv',
-                  '/home/sk1105/sumanta/CATS_data/by1test-all-pids.npy',
-                  '/home/sk1105/sumanta/CATS_data/by1test-all-paravecs.npy',
                   '/home/sk1105/sumanta/CATS_data/by1test-context-qids.npy',
-                  '/home/sk1105/sumanta/CATS_data/by1test-context-qvecs.npy',
                   '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels',
                   '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels')
 
@@ -147,10 +142,7 @@ def main():
         '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json',
         '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/by1train_paratext/by1train_paratext.tsv',
         '/home/sk1105/sumanta/CATS_data/by1train-qry-attn-bal-allpos.tsv',
-        '/home/sk1105/sumanta/CATS_data/by1train-all-pids.npy',
-        '/home/sk1105/sumanta/CATS_data/by1train-all-paravecs.npy',
         '/home/sk1105/sumanta/CATS_data/by1train-context-qids.npy',
-        '/home/sk1105/sumanta/CATS_data/by1train-context-qvecs.npy',
         '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels',
         '/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels')
 

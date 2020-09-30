@@ -199,7 +199,7 @@ def main():
 
     eval_all_pairs(args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.max_seq)
-    eval_cluster(args.qry_attn_test, args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
+    eval_cluster(dat+args.qry_attn_test, args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.art_qrels, args.hier_qrels, args.max_seq)
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@ def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
         pid_list = list(paratext_dict.keys())
         corpus = []
         for i in range(len(pid_list)):
-            corpus.append(paratext_dict[pid_list[i]])
+            corpus.append(paratext_dict[pid_list[i]].strip())
         tfidf = TfidfVectorizer()
         vecs = tfidf.fit_transform(corpus).toarray()
         for i in range(len(pid_list)):
@@ -33,6 +33,7 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_qids
     all_auc = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
     bal_auc, mean_ari = eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels)
     print("All AUC: %.5f, Balanced AUC: %.5f, mean ARI: %.5f" %(all_auc, bal_auc, mean_ari))
+    tfidf_vec_dict = {}
 
 def eval_all_pairs(parapairs_data, test_ptext_file, test_qids_file):
     ptext_dict = {}

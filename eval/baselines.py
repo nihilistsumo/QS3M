@@ -63,7 +63,7 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, article_q
                 parapairs.append(p1+'_'+p2)
         pair_scores = [jaccard(ptext_dict[parapairs[i].split('_')[0]], ptext_dict[parapairs[i].split('_')[1]])
                        for i in range(len(parapairs))]
-        true_labels = [parapairs_data['labels'][i] for i in range(len(parapairs))]
+        true_labels = [parapairs_data[page]['labels'][i] for i in range(len(parapairs))]
         page_auc.append(roc_auc_score(true_labels, pair_scores))
         pair_scores = [(p - min(pair_scores)) / (max(pair_scores) - min(pair_scores)) for p in pair_scores]
         pair_score_dict = {}

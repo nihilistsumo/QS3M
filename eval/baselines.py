@@ -151,7 +151,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
 
 def main():
     dataset = 'train'
-    level = 'toplevel'
+    level = 'hierarchical'
     if dataset == 'train':
         eval_baseline(
             '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json',

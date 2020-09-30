@@ -5,7 +5,7 @@ from sklearn.cluster import AgglomerativeClustering
 import numpy as np
 import json
 from hashlib import sha1
-import torch
+import math
 
 tfidf_vec_dict = {}
 
@@ -27,7 +27,11 @@ def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
             tfidf_vec_dict[pid_list[i]] = vecs[i]
     a = tfidf_vec_dict[pid1]
     b = tfidf_vec_dict[pid2]
-    return np.dot(a,b)/(np.sqrt(np.sum(a**2))*np.sqrt(np.sum(b**2)))
+    score = np.dot(a,b)/(np.sqrt(np.sum(a**2))*np.sqrt(np.sum(b**2)))
+    if math.isnan(score):
+        return 0.0
+    else:
+        return score
 
 def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels):
     all_auc = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)

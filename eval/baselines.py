@@ -63,7 +63,10 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, article_q
                 parapairs.append(p1+'_'+p2)
         pair_scores = [jaccard(ptext_dict[parapairs[i].split('_')[0]], ptext_dict[parapairs[i].split('_')[1]])
                        for i in range(len(parapairs))]
-        true_labels = [parapairs_data[page]['labels'][i] for i in range(len(parapairs))]
+        #true_labels = [parapairs_data[page]['labels'][i] for i in range(len(parapairs))]
+        true_labels = []
+        for i in range(len(paralist)):
+            true_labels.append(para_labels[paralist[i]])
         page_auc.append(roc_auc_score(true_labels, pair_scores))
         pair_scores = [(p - min(pair_scores)) / (max(pair_scores) - min(pair_scores)) for p in pair_scores]
         pair_score_dict = {}
@@ -88,6 +91,7 @@ def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, article_q
         print(page + ' ARI: %.5f' % ari_score)
         pagewise_ari_score[page] = ari_score
     print('All pairs AUC: %.5f' % np.mean(np.array(page_auc)))
+    print('Balanced AUC: %.5f' % bal_auc)
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
 
 def main():

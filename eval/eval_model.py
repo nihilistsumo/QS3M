@@ -193,7 +193,7 @@ def main():
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
     parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1train-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs.npy")

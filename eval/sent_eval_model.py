@@ -114,7 +114,7 @@ def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qi
         print(page + ' ARI: %.5f' % ari_score)
         pagewise_ari_score[page] = ari_score
 
-    with open('/home/sk1105/sumanta/CATS_data/sentCats_y1test_top.json', 'w') as f:
+    with open('/home/sk1105/sumanta/CATS_data/sentCats_y1train_top.json', 'w') as f:
         json.dump(pagewise_ari_score, f)
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
 
@@ -124,13 +124,13 @@ def main():
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
-    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
-    parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
-    parser.add_argument('-tp', '--test_pids', default="by1test-all-pids-sentwise.npy")
-    parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs-sentwise.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1test-context-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-qvecs.npy")
+    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
+    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
+    parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
+    parser.add_argument('-tp', '--test_pids', default="by1train-all-pids-sentwise.npy")
+    parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs-sentwise.npy")
+    parser.add_argument('-tq', '--test_qids', default="by1train-context-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-qvecs.npy")
     parser.add_argument('-cp', '--cats_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
     parser.add_argument('-seq', '--max_seq', type=int, default=10)
     parser.add_argument('-pn', '--param_n', type=int, default=32)

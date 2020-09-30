@@ -237,7 +237,7 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    #eval_all_pairs(args.parapairs, args.model_path, args.model_type, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids, dat+args.test_qvecs)
+    eval_all_pairs(args.parapairs, args.model_path, args.model_type, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids, dat+args.test_qvecs)
     eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
                  dat+args.test_qvecs, args.art_qrels, args.hier_qrels)
 

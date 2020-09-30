@@ -68,7 +68,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
 
         print('Building train data')
         train_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs, max_seq)
-        X_train_q, X_train_p, y_train = train_data_builder.build_input_data()
+        X_train_q, X_train_p, y_train, _ = train_data_builder.build_input_data()
         print('Building test data')
         test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs, max_seq)
         X_test_q, X_test_p, y_test, _ = test_data_builder.build_input_data()

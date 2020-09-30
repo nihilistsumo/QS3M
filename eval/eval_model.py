@@ -178,7 +178,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
             anchor_ari_scores.append(ari_euc_score)
-            cand_ari_scores.append(ari_score)
+            cand_ari_scores.append(ari_base_score)
 
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
     print('Mean Baseline ARI score: %.5f' % np.mean(np.array(list(pagewise_base_ari_score.values()))))

@@ -191,7 +191,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
 def main():
 
     parser = argparse.ArgumentParser(description='Run CATS model')
-    '''
+
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
@@ -199,10 +199,10 @@ def main():
     parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1train-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1train-context-meanall-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-meanall-qvecs.npy")
+    parser.add_argument('-tq', '--test_qids', default="by1train-context-title-qids.npy")
+    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-title-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats") #cats, scaled
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_meanall_b32_l0.00001_i3.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_title_b32_l0.00001_i3.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
@@ -218,7 +218,7 @@ def main():
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_title_b32_l0.00001_i3.model")
 
-    '''
+    
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels',

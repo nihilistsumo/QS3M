@@ -184,7 +184,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     print('Mean Baseline ARI score: %.5f' % np.mean(np.array(list(pagewise_base_ari_score.values()))))
     print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
     paired_ttest = ttest_rel(anchor_ari_scores, cand_ari_scores)
-    print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest[0], paired_ttest[1]) )
+    print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest[0], paired_ttest[1]))
 
 def main():
 
@@ -199,8 +199,8 @@ def main():
     parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by1train-context-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-qvecs.npy")
-    parser.add_argument('-mt', '--model_type', default="cats") #cats, scaled
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+    parser.add_argument('-mt', '--model_type', default="scaled") #cats, scaled
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cavs_leadpara_b32_l0.001_i5.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

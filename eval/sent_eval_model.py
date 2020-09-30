@@ -133,8 +133,8 @@ def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test
         print(page + ' ARI: %.5f' % ari_score)
         pagewise_ari_score[page] = ari_score
 
-    with open('/home/sk1105/sumanta/CATS_data/sentCats_y1train_hier.json', 'w') as f:
-        json.dump(pagewise_ari_score, f)
+    #with open('/home/sk1105/sumanta/CATS_data/sentCats_y1train_hier.json', 'w') as f:
+    #    json.dump(pagewise_ari_score, f)
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
 
 def main():

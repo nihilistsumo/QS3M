@@ -22,7 +22,7 @@ def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
         for i in range(len(pid_list)):
             corpus.append(paratext_dict[pid_list[i]])
         tfidf = TfidfVectorizer()
-        vecs = tfidf.fit_transform(corpus)
+        vecs = tfidf.fit_transform(corpus).toarray()
         for i in range(len(pid_list)):
             tfidf_vec_dict[pid_list[i]] = vecs[i]
     a = tfidf_vec_dict[pid1]

@@ -122,7 +122,9 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
                     p1 = paralist[i]
                     p2 = paralist[j]
                     parapairs.append(p1 + '_' + p2)
-            pair_scores = np.array([jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs])
+            #pair_scores = np.array([jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs])
+            pair_scores = np.array(
+                [tfidf_cosine_similarity(pp.split('_')[0], pp.split('_')[1], ptext_dict) for pp in parapairs])
             pair_scores = (pair_scores - np.min(pair_scores))/(np.max(pair_scores) - np.min(pair_scores))
             pair_score_dict = {}
             for i in range(len(parapairs)):

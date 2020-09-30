@@ -151,7 +151,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             #print(page+' ARI: %.5f' % ari_score)
             pagewise_ari_score[page] = ari_score
-    with open('/home/sk1105/sumanta/CATS_data/tfidf_y1train_hier.json', 'w') as f:
+    with open('/home/sk1105/sumanta/CATS_data/tfidf_y1train_top.json', 'w') as f:
         json.dump(pagewise_ari_score, f)
     mean_ari = np.mean(np.array(list(pagewise_ari_score.values())))
     print('Mean ARI score: %.5f' % mean_ari)
@@ -159,7 +159,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
 
 def main():
     dataset = 'train'
-    level = 'hierarchical'
+    level = 'toplevel'
     if dataset == 'train':
         eval_baseline(
             '/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json',

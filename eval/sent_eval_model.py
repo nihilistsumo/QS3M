@@ -42,13 +42,32 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
     test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
     print('\n\nTest loss: %.5f, Test all pairs auc: %.5f' % (test_loss.item(), test_auc))
 
-def eval_cluster(parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
+def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, max_seq_len):
 
     test_pids = np.load(test_pids_file)
     test_pvecs = np.load(test_pvecs_file)
     test_qids = np.load(test_qids_file)
     test_qvecs = np.load(test_qvecs_file)
+
+    qry_attn = []
+    with open(qry_attn_file_test, 'r') as tsf:
+        f = True
+        for l in tsf:
+            if f:
+                f = False
+                continue
+            qry_attn.append(l.split('\t'))
+
+    test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
+    X_test_q, X_test_p, y_test, _ = test_data_builder.build_input_data()
+
+    model.cpu()
+    ypred_test = model(X_test_q, X_test_p)
+    mseloss = nn.MSELoss()
+    test_loss = mseloss(ypred_test, y_test)
+    test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+    print('\n\nTest loss: %.5f, Test balanced auc: %.5f' % (test_loss.item(), test_auc))
 
     page_paras = read_art_qrels(article_qrels)
     para_labels = {}
@@ -123,7 +142,7 @@ def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
     parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
     parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")

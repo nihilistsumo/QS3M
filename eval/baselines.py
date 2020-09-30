@@ -156,7 +156,7 @@ def eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qr
     return test_auc, mean_ari
 
 def main():
-    dataset = 'train'
+    dataset = 'test'
     level = 'toplevel'
     if dataset == 'train':
         eval_baseline(

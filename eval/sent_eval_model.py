@@ -139,7 +139,7 @@ def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test
 def main():
 
     parser = argparse.ArgumentParser(description='Run CATS model')
-    '''
+    
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
@@ -172,7 +172,7 @@ def main():
     parser.add_argument('-mt', '--model_type', default="fcats")
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/sentcats_maxlen_10_meanall_b32_l0.0001_i6.model")
 
-    '''
+    
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels',

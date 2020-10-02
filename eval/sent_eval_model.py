@@ -104,7 +104,7 @@ def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test
         pair_scores = model(X_test_q, X_test_p)
 
         paralist = list(paras_in_pairs)
-
+        paralist.sort()
         true_labels = []
         for i in range(len(paralist)):
             true_labels.append(para_labels[paralist[i]])
@@ -113,7 +113,6 @@ def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test
         for i in range(len(pairs)):
             pair_score_dict[pairs[i]] = 1 - pair_scores[i].item()
         dist_mat = []
-        paralist.sort()
         for i in range(len(paralist)):
             r = []
             for j in range(len(paralist)):

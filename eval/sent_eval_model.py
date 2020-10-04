@@ -104,7 +104,7 @@ def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test
         qry_attn_for_page = [d for d in qry_attn if d[0] == qid]
         X_test_q, X_test_p, y_test, pairs = test_data_builder.build_input_data(qry_attn_for_page)
         paras_in_pairs = set()
-        for i in range(qry_attn_for_page):
+        for i in range(len(qry_attn_for_page)):
             p1 = qry_attn_for_page[i][1]
             p2 = qry_attn_for_page[i][2]
             paras_in_pairs.add(p1)

@@ -35,7 +35,15 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
     pagewise_all_cos_auc = {}
     anchor_auc = []
     cand_auc = []
-    test_data_builder = None
+    qry_attn = []
+    for page in parapairs.keys():
+        qid = 'Query:' + sha1(str.encode(page)).hexdigest()
+        for i in range(len(parapairs[page]['parapairs'])):
+            p1 = parapairs[page]['parapairs'][i].split('_')[0]
+            p2 = parapairs[page]['parapairs'][i].split('_')[1]
+            qry_attn.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
+
+    test_data_builder = InputCATSDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs)
     for page in parapairs.keys():
         qry_attn_ts = []
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
@@ -43,8 +51,6 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
             p1 = parapairs[page]['parapairs'][i].split('_')[0]
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
-        if test_data_builder == None:
-            test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
         X_test, y_test = test_data_builder.build_input_data(qry_attn_ts)
         if len(set(y_test.cpu().numpy())) < 2:
             continue
@@ -162,8 +168,8 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             print(qid + ' not present in query vecs dict')
         else:
             qry_attn_for_page = [d for d in qry_attn_ts if d[0]==qid]
-            test_data_builder_for_page = InputCATSDatasetBuilder(qry_attn_for_page, test_pids, test_pvecs, test_qids, test_qvecs)
-            X_test_page, y_test_page = test_data_builder_for_page.build_input_data()
+            #test_data_builder_for_page = InputCATSDatasetBuilder(qry_attn_for_page, test_pids, test_pvecs, test_qids, test_qvecs)
+            X_test_page, y_test_page = test_data_builder.build_input_data(qry_attn_for_page)
             ypred_test_page = model(X_test_page)
             test_auc_page = roc_auc_score(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
 

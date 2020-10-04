@@ -77,7 +77,7 @@ class InputCATSDatasetBuilder:
         queries_dict = {}
         for i, q in enumerate(queries):
             queries_dict[q] = i
-        print('Going to initialize para vecs')
+        #print('Going to initialize para vecs')
         for p in paralist:
             self.para_vecs[p] = paravecs_npy[paraids_dict[p]]
         self.query_vecs = {}
@@ -93,7 +93,7 @@ class InputCATSDatasetBuilder:
                   'they are always present with /')
             for q in missing_queries:
                 print(q)
-        print('Init done')
+        #print('Init done')
 
     def build_input_data(self):
         X = []
@@ -105,7 +105,7 @@ class InputCATSDatasetBuilder:
                 X.append(row)
         X = torch.tensor(X)
         y = torch.tensor(y)
-        print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
+        #print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
         return X, y
 
     def build_cluster_data(self, qid, paralist):

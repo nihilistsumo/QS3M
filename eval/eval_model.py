@@ -49,16 +49,13 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
 
         ypred_test = model(X_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-        #print(page+' all pairs auc: %.5f' %  test_auc)
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
         cos_auc = roc_auc_score(y_test, y_cos)
-        #print('Test cosine all pairs auc: %.5f' % cos_auc)
         y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
         euclid_auc = roc_auc_score(y_test, y_euclid)
-        #print('Test euclidean all pairs auc: %.5f' % euclid_auc)
         pagewise_all_auc[page] = test_auc
         pagewise_all_euc_auc[page] = euclid_auc
         pagewise_all_cos_auc[page] = cos_auc
@@ -292,8 +289,8 @@ def main():
     parser.add_argument('-pp1', '--parapairs1', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp1', '--test_pids1', default="by1train-all-pids.npy")
     parser.add_argument('-tv1', '--test_pvecs1', default="by1train-all-paravecs.npy")
-    parser.add_argument('-tq1', '--test_qids1', default="by1train-context-qids.npy")
-    parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-qvecs.npy")
+    parser.add_argument('-tq1', '--test_qids1', default="by1train-context-title-qids.npy")
+    parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-title-qvecs.npy")
 
     parser.add_argument('-qt2', '--qry_attn_test2', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
@@ -302,11 +299,11 @@ def main():
     parser.add_argument('-pp2', '--parapairs2', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp2', '--test_pids2', default="by1test-all-pids.npy")
     parser.add_argument('-tv2', '--test_pvecs2', default="by1test-all-paravecs.npy")
-    parser.add_argument('-tq2', '--test_qids2', default="by1test-context-qids.npy")
-    parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-qvecs.npy")
+    parser.add_argument('-tq2', '--test_qids2', default="by1test-context-title-qids.npy")
+    parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-title-qvecs.npy")
 
     parser.add_argument('-mt', '--model_type', default="cats") #cats, scaled
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_title_b32_l0.00001_i3.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
@@ -356,24 +353,26 @@ def main():
                                                                                               args.art_qrels2,
                                                                                               args.top_qrels2,
                                                                                               args.hier_qrels2)
-    print("benchmark Y1 train")
-    print("==================")
-    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (all_auc1, ttest_auc1[1], bal_auc1, ttest_bal_auc1[1]))
-    print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc1, bal_euc_auc1))
-    print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc1, bal_cos_auc1))
-    print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" % (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
-    print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari1, mean_euc_ari1_hq))
-    print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari1, mean_cos_ari1_hq))
-
     print("\nbenchmark Y1 test")
     print("==================")
-    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
+    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
+    all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc2, bal_euc_auc2))
     print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc2, bal_cos_auc2))
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
           (mean_ari2, ttest2[1], mean_ari2_hq, ttest2_hq[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari2_hq))
     print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari2, mean_cos_ari2_hq))
+
+    print("\nbenchmark Y1 train")
+    print("==================")
+    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
+        all_auc1, ttest_auc1[1], bal_auc1, ttest_bal_auc1[1]))
+    print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc1, bal_euc_auc1))
+    print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc1, bal_cos_auc1))
+    print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" % (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
+    print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari1, mean_euc_ari1_hq))
+    print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari1, mean_cos_ari1_hq))
 
 
 if __name__ == '__main__':

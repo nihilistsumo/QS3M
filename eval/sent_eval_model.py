@@ -252,17 +252,14 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
                     pair_score_dict[pp] = 1.0
                 pair_euclid_score_dict[pp] = pair_euclid_scores[parapairs.index(pp)]
             dist_mat = []
-            dist_base_mat = []
             dist_euc_mat = []
             paralist.sort()
             for i in range(len(paralist)):
                 r = []
-                rbase = []
                 reuc = []
                 for j in range(len(paralist)):
                     if i == j:
                         r.append(0.0)
-                        rbase.append(0.0)
                         reuc.append(0.0)
                     elif i < j:
                         r.append(pair_score_dict[paralist[i]+ '_' + paralist[j]])
@@ -271,33 +268,25 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
                         r.append(pair_score_dict[paralist[j] + '_' + paralist[i]])
                         reuc.append(pair_euclid_score_dict[paralist[j] + '_' + paralist[i]])
                 dist_mat.append(r)
-                dist_base_mat.append(rbase)
                 dist_euc_mat.append(reuc)
 
             cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
             cl_labels = cl.fit_predict(dist_mat)
-            cl_base_labels = cl.fit_predict(dist_base_mat)
             cl_euclid_labels = cl.fit_predict(dist_euc_mat)
 
             cl_hq = AgglomerativeClustering(n_clusters=page_num_sections_hq[page], affinity='precomputed', linkage='average')
             cl_labels_hq = cl_hq.fit_predict(dist_mat)
-            cl_base_labels_hq = cl_hq.fit_predict(dist_base_mat)
             cl_euclid_labels_hq = cl_hq.fit_predict(dist_euc_mat)
 
             ari_score = adjusted_rand_score(true_labels, cl_labels)
             ari_score_hq = adjusted_rand_score(true_labels_hq, cl_labels_hq)
-            ari_base_score = adjusted_rand_score(true_labels, cl_base_labels)
-            ari_base_score_hq = adjusted_rand_score(true_labels_hq, cl_base_labels_hq)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
             ari_euc_score_hq = adjusted_rand_score(true_labels_hq, cl_euclid_labels_hq)
-            print(page+' ARI: %.5f, Base ARI: %.5f, Euclid ARI: %.5f' %
-                  (ari_score, ari_base_score, ari_euc_score))
+            print(page+' ARI: %.5f, Euclid ARI: %.5f' %
+                  (ari_score, ari_euc_score))
             pagewise_ari_score[page] = ari_score
-            pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
             pagewise_hq_ari_score[page] = ari_score_hq
-            pagewise_base_ari_score[page] = ari_base_score
-            pagewise_hq_base_ari_score[page] = ari_base_score_hq
             pagewise_euc_ari_score[page] = ari_euc_score
             pagewise_hq_euc_ari_score[page] = ari_euc_score_hq
             anchor_ari_scores.append(ari_euc_score)

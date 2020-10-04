@@ -207,11 +207,11 @@ class InputSentenceCATSDatasetBuilder:
                     print(str(i) + ' samples processed out of '+str(samples))
         Xq = np.array(Xq)
         Xp = np.array(Xp)
-        print('numpy conversion done')
+        #print('numpy conversion done')
         Xq = torch.as_tensor(Xq, dtype=torch.float)
         Xp = torch.as_tensor(Xp, dtype=torch.float)
         y = torch.tensor(y)
-        print('Xq shape: ' + str(Xq.shape) + ', Xp shape: ' + str(Xp.shape) + ', y shape: ' + str(y.shape))
+        #print('Xq shape: ' + str(Xq.shape) + ', Xp shape: ' + str(Xp.shape) + ', y shape: ' + str(y.shape))
         return Xq, Xp, y, pairs
 
     def build_cluster_data(self, qid, paralist):

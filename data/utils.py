@@ -95,10 +95,12 @@ class InputCATSDatasetBuilder:
                 print(q)
         #print('Init done')
 
-    def build_input_data(self):
+    def build_input_data(self, qry_attn_data=None):
         X = []
         y = []
-        for qid, pid1, pid2, label in self.query_attn_data:
+        if qry_attn_data == None:
+            qry_attn_data = self.query_attn_data
+        for qid, pid1, pid2, label in qry_attn_data:
             if qid in self.query_vecs.keys():
                 row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
                 y.append(float(label))
@@ -157,14 +159,16 @@ class InputSentenceCATSDatasetBuilder:
         for i in range(len(self.queryids)):
             self.query_indices[self.queryids[i]] = i
 
-    def build_input_data(self):
+    def build_input_data(self, qry_attn_dat=None):
         Xq = []
         Xp = []
         y = []
-        samples = len(self.query_attn_data)
+        if qry_attn_dat == None:
+            qry_attn_dat = self.query_attn_data
+        samples = len(qry_attn_dat)
         i = 0
         pairs = []
-        for qid, pid1, pid2, label in self.query_attn_data:
+        for qid, pid1, pid2, label in qry_attn_dat:
             if qid in self.query_indices.keys():
                 # row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
                 qvec = self.queryvecs_npy[self.query_indices[qid]]

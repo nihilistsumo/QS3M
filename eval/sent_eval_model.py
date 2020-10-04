@@ -19,28 +19,28 @@ import json
 
 def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, max_seq_len):
-    qry_attn_ts = []
+    test_pids = np.load(test_pids_file)
+    test_pvecs = np.load(test_pvecs_file)
+    test_qids = np.load(test_qids_file)
+    test_qvecs = np.load(test_qvecs_file)
+    model.cpu()
     with open(parapairs_data, 'r') as f:
         parapairs = json.load(f)
+    test_data_builder = None
     for page in parapairs.keys():
+        qry_attn_ts = []
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         for i in range(len(parapairs[page]['parapairs'])):
             p1 = parapairs[page]['parapairs'][i].split('_')[0]
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
-    test_pids = np.load(test_pids_file)
-    test_pvecs = np.load(test_pvecs_file)
-    test_qids = np.load(test_qids_file)
-    test_qvecs = np.load(test_qvecs_file)
-    test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
-    X_test_q, X_test_p, y_test, pairs = test_data_builder.build_input_data()
 
-    model.cpu()
-    ypred_test = model(X_test_q, X_test_p)
-    mseloss = nn.MSELoss()
-    test_loss = mseloss(ypred_test, y_test)
-    test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-    print('\n\nTest loss: %.5f, Test all pairs auc: %.5f' % (test_loss.item(), test_auc))
+        if test_data_builder == None:
+            test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
+        X_test_q, X_test_p, y_test, pairs = test_data_builder.build_input_data(qry_attn_ts)
+        ypred_test = model(X_test_q, X_test_p)
+        test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+        print(page+' Method AUC: %.5f' % test_auc)
 
 def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, max_seq_len):

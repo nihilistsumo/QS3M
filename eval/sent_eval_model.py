@@ -34,6 +34,7 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
     test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
+    pagewise_all_auc = {}
     for page in parapairs.keys():
         qry_attn_ts = []
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
@@ -43,9 +44,13 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
 
         X_test_q, X_test_p, y_test, pairs = test_data_builder.build_input_data(qry_attn_ts)
+        if len(set(y_test.cpu().numpy())) < 2:
+            continue
         ypred_test = model(X_test_q, X_test_p)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         print(page+' Method AUC: %.5f' % test_auc)
+        pagewise_all_auc[page] = test_auc
+    return pagewise_all_auc
 
 def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, max_seq_len):

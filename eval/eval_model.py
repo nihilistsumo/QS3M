@@ -44,6 +44,8 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
         test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
         X_test, y_test = test_data_builder.build_input_data()
+        if len(set(y_test)) < 2:
+            continue
 
         ypred_test = model(X_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())

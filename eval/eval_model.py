@@ -255,7 +255,7 @@ def main():
     parser.add_argument('-tq1', '--test_qids1', default="by1train-context-meanall-qids.npy")
     parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-meanall-qvecs.npy")
 
-    parser.add_argument('-qt2', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-qt2', '--qry_attn_test2', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
     parser.add_argument('-tql2', '--top_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
     parser.add_argument('-hql2', '--hier_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")

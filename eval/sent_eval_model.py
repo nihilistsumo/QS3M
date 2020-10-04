@@ -236,13 +236,18 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
                 true_labels_hq.append(para_labels_hq[paralist[i]])
+
+            X_q, X_p, pairs = test_data_builder.build_cluster_data(qid, paralist)
+            pair_scores = model(X_q, X_p)
+            pair_scores = (pair_scores - torch.min(pair_scores)) / (torch.max(pair_scores) - torch.min(pair_scores))
+
             X_page, parapairs = test_data_builder_para.build_cluster_data(qid, paralist)
             pair_euclid_scores = torch.sqrt(torch.sum((X_page[:, 768:768 * 2] - X_page[:, 768 * 2:])**2, 1)).numpy()
             pair_euclid_scores = (pair_euclid_scores - np.min(pair_euclid_scores)) / (np.max(pair_euclid_scores) - np.min(pair_euclid_scores))
-            pair_scores = (ypred_test_page - torch.min(ypred_test_page)) / (torch.max(ypred_test_page) - torch.min(ypred_test_page))
+
             pair_score_dict = {}
             pair_euclid_score_dict = {}
-            for pp in pairs_page:
+            for pp in parapairs:
                 pair_score_dict[pp] = 1-pair_scores[pairs_page.index(pp)].item()
                 pair_euclid_score_dict[pp] = pair_euclid_scores[parapairs.index(pp)]
             dist_mat = []

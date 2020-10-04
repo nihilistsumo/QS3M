@@ -215,24 +215,52 @@ class InputSentenceCATSDatasetBuilder:
         return Xq, Xp, y, pairs
 
     def build_cluster_data(self, qid, paralist):
-        all_para_vec_dict = {}
-        for i, para in enumerate(self.paraids):
-            all_para_vec_dict[para] = self.paravecs_npy[i]
-        X = []
-        if qid not in self.query_vecs.keys():
+        if qid not in self.query_indices.keys():
             print(qid + ' not present in query vecs dict')
             return None
-        parapairs = []
+        Xq = []
+        Xp = []
+        pairs = []
         for i in range(len(paralist) - 1):
             for j in range(i + 1, len(paralist)):
-                p1 = paralist[i]
-                p2 = paralist[j]
-                row = np.hstack((self.query_vecs[qid], all_para_vec_dict[p1], all_para_vec_dict[p2]))
-                X.append(row)
-                parapairs.append(p1 + '_' + p2)
-        X = torch.tensor(X)
-        print(qid + ' X shape: ' + str(X.shape))
-        return X, parapairs
+                pid1 = paralist[i]
+                pid2 = paralist[j]
+
+                qvec = self.queryvecs_npy[self.query_indices[qid]]
+                p1index_dat = self.paraids_dict[pid1]
+                p1mat = self.paravecs_npy[p1index_dat[0]:p1index_dat[0] + p1index_dat[1]]
+                p1vec_len = p1mat.shape[0]
+                if p1vec_len < self.max_seq_len:
+                    valid_bits = np.array([1.0] * p1vec_len + [0.0] * (self.max_seq_len - p1vec_len)).reshape((-1, 1))
+                    z = np.zeros((self.max_seq_len - p1vec_len, self.emb_len))
+                    p1mat = np.hstack((np.vstack((p1mat, z)), valid_bits))
+                else:
+                    valid_bits = np.array([1.0] * self.max_seq_len).reshape((-1, 1))
+                    p1mat = np.hstack((p1mat[:self.max_seq_len], valid_bits))
+
+                p2index_dat = self.paraids_dict[pid2]
+                p2mat = self.paravecs_npy[p2index_dat[0]:p2index_dat[0] + p2index_dat[1]]
+                p2vec_len = p2mat.shape[0]
+                if p2vec_len < self.max_seq_len:
+                    valid_bits = np.array([1.0] * p2vec_len + [0.0] * (self.max_seq_len - p2vec_len)).reshape((-1, 1))
+                    p2mat = np.hstack(
+                        (np.vstack((p2mat, np.zeros((self.max_seq_len - p2vec_len, self.emb_len)))), valid_bits))
+                else:
+                    valid_bits = np.array([1.0] * self.max_seq_len).reshape((-1, 1))
+                    p2mat = np.hstack((p2mat[:self.max_seq_len], valid_bits))
+                dat_mat = np.hstack((p1mat, p2mat))
+
+                Xq.append(qvec)
+                Xp.append(dat_mat.transpose())
+                if pid1 < pid2:
+                    pairs.append(pid1 + '_' + pid2)
+                else:
+                    pairs.append(pid2 + '_' + pid1)
+        Xq = np.array(Xq)
+        Xp = np.array(Xp)
+        Xq = torch.as_tensor(Xq, dtype=torch.float)
+        Xp = torch.as_tensor(Xp, dtype=torch.float)
+        return Xq, Xp, pairs
 
 
 

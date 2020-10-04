@@ -202,8 +202,6 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
 
     pagewise_ari_score = {}
     pagewise_hq_ari_score = {}
-    pagewise_base_ari_score = {}
-    pagewise_hq_base_ari_score = {}
     pagewise_euc_ari_score = {}
     pagewise_hq_euc_ari_score = {}
     anchor_auc = []

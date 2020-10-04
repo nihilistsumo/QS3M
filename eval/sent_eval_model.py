@@ -219,7 +219,7 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
         else:
             qry_attn_for_page = [d for d in qry_attn_full if d[0]==qid]
             #test_data_builder_for_page = InputCATSDatasetBuilder(qry_attn_for_page, test_pids, test_pvecs, test_qids, test_qvecs)
-            X_q_page, X_p_page, y_page, pairs_page = test_data_builder.build_input_data(qry_attn_for_page)
+            X_q_page, X_p_page, y_page, _ = test_data_builder.build_input_data(qry_attn_for_page)
             ypred_test_page = model(X_q_page, X_p_page)
             test_auc_page = roc_auc_score(y_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
 

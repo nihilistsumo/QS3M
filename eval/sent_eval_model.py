@@ -151,9 +151,8 @@ def eval_cluster(qry_attn_file_test, parapairs_data, model, test_pids_file, test
     print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
 '''
 
-def eval_cluster(model, qry_attn_file_test, test_pids_file, test_pvecs_file, test_pids_para_file, test_pvecs_para_file,
+def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_pvecs_file, test_pids_para_file, test_pvecs_para_file,
                  test_qids_file, test_qvecs_file, article_qrels, top_qrels, hier_qrels, max_seq_len):
-    model.eval()
     qry_attn_full = []
     with open(qry_attn_file_test, 'r') as tsf:
         f = True
@@ -329,8 +328,10 @@ def main():
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
-    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-aql', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
+    parser.add_argument('-tql', '--top_qrels',
+                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
     parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp', '--test_pids', default="by1test-all-pids-sentwise.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs-sentwise.npy")
@@ -389,7 +390,7 @@ def main():
                  dat+args.test_qvecs, args.max_seq)
     eval_cluster(dat+args.qry_attn_test, args.parapairs, model, dat+args.test_pids, dat+args.test_pvecs,
                  dat+args.test_pids_para, dat+args.test_pvecs_para, dat+args.test_qids, dat+args.test_qvecs,
-                 args.art_qrels, args.hier_qrels, args.max_seq)
+                 args.art_qrels, args.top_qrels, args.hier_qrels, args.max_seq)
 
 if __name__ == '__main__':
     main()

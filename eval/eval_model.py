@@ -20,42 +20,56 @@ from scipy.stats import ttest_rel
 
 def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file):
+    test_pids = np.load(test_pids_file)
+    test_pvecs = np.load(test_pvecs_file)
+    test_qids = np.load(test_qids_file)
+    test_qvecs = np.load(test_qvecs_file)
     model = CATSSimilarityModel(768, model_type)
     model.load_state_dict(torch.load(model_path))
     model.eval()
-    qry_attn_ts = []
+    model.cpu()
     with open(parapairs_data, 'r') as f:
         parapairs = json.load(f)
+    pagewise_all_auc = {}
+    pagewise_all_euc_auc = {}
+    pagewise_all_cos_auc = {}
+    anchor_auc = []
+    cand_auc = []
     for page in parapairs.keys():
+        qry_attn_ts = []
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         for i in range(len(parapairs[page]['parapairs'])):
             p1 = parapairs[page]['parapairs'][i].split('_')[0]
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
-    test_pids = np.load(test_pids_file)
-    test_pvecs = np.load(test_pvecs_file)
-    test_qids = np.load(test_qids_file)
-    test_qvecs = np.load(test_qvecs_file)
-    test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
-    X_test, y_test = test_data_builder.build_input_data()
+        test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+        X_test, y_test = test_data_builder.build_input_data()
 
-    model.cpu()
-    ypred_test = model(X_test)
-    mseloss = nn.MSELoss()
-    test_loss = mseloss(ypred_test, y_test)
-    test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-    print('\n\nTest loss: %.5f, Test all pairs auc: %.5f' % (test_loss.item(), test_auc))
+        ypred_test = model(X_test)
+        test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+        #print(page+' all pairs auc: %.5f' %  test_auc)
 
-    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
-    y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
-    cos_auc = roc_auc_score(y_test, y_cos)
-    print('Test cosine all pairs auc: %.5f' % cos_auc)
-    y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
-    y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
-    euclid_auc = roc_auc_score(y_test, y_euclid)
-    print('Test euclidean all pairs auc: %.5f' % euclid_auc)
+        cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+        y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
+        cos_auc = roc_auc_score(y_test, y_cos)
+        #print('Test cosine all pairs auc: %.5f' % cos_auc)
+        y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
+        y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
+        euclid_auc = roc_auc_score(y_test, y_euclid)
+        #print('Test euclidean all pairs auc: %.5f' % euclid_auc)
+        pagewise_all_auc[page] = test_auc
+        pagewise_all_euc_auc[page] = euclid_auc
+        pagewise_all_cos_auc[page] = cos_auc
+        anchor_auc.append(euclid_auc)
+        cand_auc.append(test_auc)
+        print(page+' Method AUC: %.5f, euclid AUC: %.5f, cosine AUC: %.5f' % (test_auc, euclid_auc, cos_auc))
 
-    return test_auc, euclid_auc, cos_auc
+    paired_ttest = ttest_rel(anchor_auc, cand_auc)
+    mean_auc = np.mean(np.array(list(pagewise_all_auc.values())))
+    mean_euclid_auc = np.mean(np.array(list(pagewise_all_euc_auc.values())))
+    mean_cos_auc = np.mean(np.array(list(pagewise_all_cos_auc.values())))
+
+    return mean_auc, mean_euclid_auc, mean_cos_auc, paired_ttest
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, hier_qrels):
@@ -76,8 +90,10 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     test_qvecs = np.load(test_qvecs_file)
 
     test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
-    X_test, y_test = test_data_builder.build_input_data()
+    #X_test, y_test = test_data_builder.build_input_data()
 
+    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+    '''
     model.cpu()
     ypred_test = model(X_test)
     mseloss = nn.MSELoss()
@@ -93,6 +109,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
     euclid_auc = roc_auc_score(y_test, y_euclid)
     print('Test euclidean balanced auc: %.5f' % euclid_auc)
+    '''
 
     page_paras = read_art_qrels(article_qrels)
     para_labels = {}
@@ -129,6 +146,9 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_hq_base_ari_score = {}
     pagewise_euc_ari_score = {}
     pagewise_hq_euc_ari_score = {}
+    anchor_auc = []
+    cand_auc = []
+    cos_auc = []
     anchor_ari_scores = []
     cand_ari_scores = []
     anchor_ari_scores_hq = []
@@ -140,8 +160,22 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
         if qid not in test_data_builder.query_vecs.keys():
             print(qid + ' not present in query vecs dict')
         else:
-            paralist = page_paras[page]
+            qry_attn_for_page = [d for d in qry_attn_ts if d[0]==qid]
+            test_data_builder_for_page = InputCATSDatasetBuilder(qry_attn_for_page, test_pids, test_pvecs, test_qids, test_qvecs)
+            X_test_page, y_test_page = test_data_builder_for_page.build_input_data()
+            ypred_test_page = model(X_test_page)
+            test_auc_page = roc_auc_score(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
 
+            y_cos_page = cos(X_test_page[:, 768:768 * 2], X_test_page[:, 768 * 2:])
+            cos_auc_page = roc_auc_score(y_test_page, y_cos_page)
+            y_euclid_page = torch.sqrt(torch.sum((X_test_page[:, 768:768 * 2] - X_test_page[:, 768 * 2:]) ** 2, 1)).numpy()
+            y_euclid_page = 1 - (y_euclid_page - np.min(y_euclid_page)) / (np.max(y_euclid_page) - np.min(y_euclid_page))
+            euclid_auc_page = roc_auc_score(y_test_page, y_euclid_page)
+            anchor_auc.append(euclid_auc_page)
+            cand_auc.append(test_auc_page)
+            cos_auc.append(cos_auc_page)
+
+            paralist = page_paras[page]
             true_labels = []
             true_labels_hq = []
             for i in range(len(paralist)):
@@ -217,6 +251,10 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             anchor_ari_scores_hq.append(ari_euc_score_hq)
             cand_ari_scores_hq.append(ari_score_hq)
 
+    test_auc = np.mean(np.array(cand_auc))
+    euclid_auc = np.mean(np.array(anchor_auc))
+    cos_auc = np.mean(np.array(cos_auc))
+    paired_ttest_auc = ttest_rel(anchor_auc, cand_auc)
     mean_ari = np.mean(np.array(list(pagewise_ari_score.values())))
     mean_cos_ari = np.mean(np.array(list(pagewise_base_ari_score.values())))
     mean_euc_ari = np.mean(np.array(list(pagewise_euc_ari_score.values())))
@@ -227,17 +265,17 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     print('Mean ARI score: %.5f' % mean_ari)
     print('Mean Cosine ARI score: %.5f' % mean_cos_ari)
     print('Mean Euclid ARI score: %.5f' % mean_euc_ari)
-    paired_ttest = ttest_rel(anchor_ari_scores, cand_ari_scores)
-    print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest[0], paired_ttest[1]))
+    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest_ari[0], paired_ttest_ari[1]))
     print('Mean hq ARI score: %.5f' % mean_ari_hq)
     print('Mean hq Cosine ARI score: %.5f' % mean_cos_ari_hq)
     print('Mean hq Euclid ARI score: %.5f' % mean_euc_ari_hq)
-    paired_ttest_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
-    print('Paired ttest hq: %.5f, p val: %.5f' % (paired_ttest_hq[0], paired_ttest_hq[1]))
+    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
+    print('Paired ttest hq: %.5f, p val: %.5f' % (paired_ttest_ari_hq[0], paired_ttest_ari_hq[1]))
     #with open('/home/sk1105/sumanta/CATS_data/anchor_euc_y1test_hier.json', 'w') as f:
     #    json.dump(pagewise_euc_ari_score, f)
     return test_auc, euclid_auc, cos_auc, mean_ari, mean_euc_ari, mean_cos_ari, mean_ari_hq, mean_euc_ari_hq, \
-           mean_cos_ari_hq, paired_ttest, paired_ttest_hq
+           mean_cos_ari_hq, paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc
 
 def main():
 
@@ -287,11 +325,11 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    all_auc1, all_euc_auc1, all_cos_auc1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
+    all_auc1, all_euc_auc1, all_cos_auc1, ttest_auc1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
                                                           dat + args.test_pids1, dat + args.test_pvecs1,
                                                           dat + args.test_qids1, dat + args.test_qvecs1)
     bal_auc1, bal_euc_auc1, bal_cos_auc1, mean_ari1, mean_euc_ari1, mean_cos_ari1, mean_ari1_hq, mean_euc_ari1_hq, \
-    mean_cos_ari1_hq, ttest1, ttest1_hq = eval_cluster(args.model_path,
+    mean_cos_ari1_hq, ttest1, ttest1_hq, ttest_bal_auc1 = eval_cluster(args.model_path,
                                                                                               args.model_type,
                                                                                               dat + args.qry_attn_test1,
                                                                                               dat + args.test_pids1,
@@ -302,11 +340,11 @@ def main():
                                                                                               args.top_qrels1,
                                                                                               args.hier_qrels1)
 
-    all_auc2, all_euc_auc2, all_cos_auc2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
+    all_auc2, all_euc_auc2, all_cos_auc2, ttest_auc2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
                                                           dat + args.test_pids2, dat + args.test_pvecs2,
                                                           dat + args.test_qids2, dat + args.test_qvecs2)
     bal_auc2, bal_euc_auc2, bal_cos_auc2, mean_ari2, mean_euc_ari2, mean_cos_ari2, mean_ari2_hq, mean_euc_ari2_hq, \
-    mean_cos_ari2_hq, ttest2, ttest2_hq = eval_cluster(args.model_path,
+    mean_cos_ari2_hq, ttest2, ttest2_hq, ttest_bal_auc2 = eval_cluster(args.model_path,
                                                                                               args.model_type,
                                                                                               dat + args.qry_attn_test2,
                                                                                               dat + args.test_pids2,
@@ -318,22 +356,22 @@ def main():
                                                                                               args.hier_qrels2)
     print("benchmark Y1 train")
     print("==================")
-    print("AUC method all pairs: %.5f, balanced: %.5f" % (all_auc1, bal_auc1))
+    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (all_auc1, ttest_auc1[1], bal_auc1, ttest_bal_auc1[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc1, bal_euc_auc1))
     print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc1, bal_cos_auc1))
-    print("Method top ARI: %.5f, ttest_pval: %.5f, hier ARI: %.5f, ttest_pval: %.5f" % (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
+    print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" % (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari1, mean_euc_ari1_hq))
     print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari1, mean_cos_ari1_hq))
 
-    print("benchmark Y1 test")
+    print("\nbenchmark Y1 test")
     print("==================")
-    print("AUC method all pairs: %.5f, balanced: %.5f", (all_auc2, bal_auc2))
-    print("AUC euclid all pairs: %.5f, balanced: %.5f", (all_euc_auc2, bal_euc_auc2))
-    print("AUC cosine all pairs: %.5f, balanced: %.5f", (all_cos_auc2, bal_cos_auc2))
-    print("Method top ARI: %.5f, ttest_pval: %.5f, hier ARI: %.5f, ttest_pval: %.5f",
+    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
+    print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc2, bal_euc_auc2))
+    print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc2, bal_cos_auc2))
+    print("Method top ARI: %.5f, ttest_pval: %.5f, hier ARI: %.5f, ttest_pval: %.5f" %
           (mean_ari2, ttest2[1], mean_ari2_hq, ttest2_hq[1]))
-    print("Euclid top ARI: %.5f, hier ARI: %.5f", (mean_euc_ari2, mean_euc_ari2_hq))
-    print("Cosine top ARI: %.5f, hier ARI: %.5f", (mean_cos_ari2, mean_cos_ari2_hq))
+    print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari2_hq))
+    print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari2, mean_cos_ari2_hq))
 
 
 if __name__ == '__main__':

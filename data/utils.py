@@ -128,7 +128,7 @@ class InputCATSDatasetBuilder:
                 X.append(row)
                 parapairs.append(p1+'_'+p2)
         X = torch.tensor(X)
-        print(qid+' X shape: '+str(X.shape))
+        #print(qid+' X shape: '+str(X.shape))
         return X, parapairs
 
 class InputSentenceCATSDatasetBuilder:

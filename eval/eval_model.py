@@ -55,8 +55,10 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
     euclid_auc = roc_auc_score(y_test, y_euclid)
     print('Test euclidean all pairs auc: %.5f' % euclid_auc)
 
+    return test_auc, euclid_auc, cos_auc
+
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
-                 test_qvecs_file, article_qrels, top_qrels):
+                 test_qvecs_file, article_qrels, top_qrels, hier_qrels):
     model = CATSSimilarityModel(768, model_type)
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -107,11 +109,30 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             sec.add(para_labels[p])
         page_num_sections[page] = len(sec)
 
+    para_labels_hq = {}
+    with open(hier_qrels, 'r') as f:
+        for l in f:
+            para = l.split(' ')[2]
+            sec = l.split(' ')[0]
+            para_labels_hq[para] = sec
+    page_num_sections_hq = {}
+    for page in page_paras.keys():
+        paras = page_paras[page]
+        sec = set()
+        for p in paras:
+            sec.add(para_labels_hq[p])
+        page_num_sections_hq[page] = len(sec)
+
     pagewise_ari_score = {}
+    pagewise_hq_ari_score = {}
     pagewise_base_ari_score = {}
+    pagewise_hq_base_ari_score = {}
     pagewise_euc_ari_score = {}
+    pagewise_hq_euc_ari_score = {}
     anchor_ari_scores = []
     cand_ari_scores = []
+    anchor_ari_scores_hq = []
+    cand_ari_scores_hq = []
 
     for page in page_paras.keys():
         print('Going to cluster '+page)
@@ -122,8 +143,10 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             paralist = page_paras[page]
 
             true_labels = []
+            true_labels_hq = []
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
+                true_labels_hq.append(para_labels_hq[paralist[i]])
             X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
             pair_baseline_scores = cos(X_page[:, 768:768 * 2], X_page[:, 768 * 2:])
             pair_euclid_scores = torch.sqrt(torch.sum((X_page[:, 768:768 * 2] - X_page[:, 768 * 2:])**2, 1)).numpy()
@@ -164,61 +187,88 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
                 dist_euc_mat.append(reuc)
 
             cl = AgglomerativeClustering(n_clusters=page_num_sections[page], affinity='precomputed', linkage='average')
-            # cl = AgglomerativeClustering(n_clusters=8, affinity='precomputed', linkage='average')
-            # cl = DBSCAN(eps=0.7, min_samples=3)
             cl_labels = cl.fit_predict(dist_mat)
             cl_base_labels = cl.fit_predict(dist_base_mat)
             cl_euclid_labels = cl.fit_predict(dist_euc_mat)
+
+            cl_hq = AgglomerativeClustering(n_clusters=page_num_sections_hq[page], affinity='precomputed', linkage='average')
+            cl_labels_hq = cl_hq.fit_predict(dist_mat)
+            cl_base_labels_hq = cl_hq.fit_predict(dist_base_mat)
+            cl_euclid_labels_hq = cl_hq.fit_predict(dist_euc_mat)
+
             ari_score = adjusted_rand_score(true_labels, cl_labels)
+            ari_score_hq = adjusted_rand_score(true_labels_hq, cl_labels_hq)
             ari_base_score = adjusted_rand_score(true_labels, cl_base_labels)
+            ari_base_score_hq = adjusted_rand_score(true_labels_hq, cl_base_labels_hq)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
+            ari_euc_score_hq = adjusted_rand_score(true_labels_hq, cl_euclid_labels_hq)
             print(page+' ARI: %.5f, Base ARI: %.5f, Euclid ARI: %.5f' %
                   (ari_score, ari_base_score, ari_euc_score))
             pagewise_ari_score[page] = ari_score
             pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
+            pagewise_hq_ari_score[page] = ari_score_hq
+            pagewise_base_ari_score[page] = ari_base_score
+            pagewise_hq_base_ari_score[page] = ari_base_score_hq
+            pagewise_euc_ari_score[page] = ari_euc_score
+            pagewise_hq_euc_ari_score[page] = ari_euc_score_hq
             anchor_ari_scores.append(ari_euc_score)
             cand_ari_scores.append(ari_score)
+            anchor_ari_scores_hq.append(ari_euc_score_hq)
+            cand_ari_scores_hq.append(ari_score_hq)
 
-    print('Mean ARI score: %.5f' % np.mean(np.array(list(pagewise_ari_score.values()))))
-    print('Mean Baseline ARI score: %.5f' % np.mean(np.array(list(pagewise_base_ari_score.values()))))
-    print('Mean Euclid ARI score: %.5f' % np.mean(np.array(list(pagewise_euc_ari_score.values()))))
+    mean_ari = np.mean(np.array(list(pagewise_ari_score.values())))
+    mean_cos_ari = np.mean(np.array(list(pagewise_base_ari_score.values())))
+    mean_euc_ari = np.mean(np.array(list(pagewise_euc_ari_score.values())))
+    mean_ari_hq = np.mean(np.array(list(pagewise_hq_ari_score.values())))
+    mean_cos_ari_hq = np.mean(np.array(list(pagewise_hq_base_ari_score.values())))
+    mean_euc_ari_hq = np.mean(np.array(list(pagewise_hq_euc_ari_score.values())))
+
+    print('Mean ARI score: %.5f' % mean_ari)
+    print('Mean Cosine ARI score: %.5f' % mean_cos_ari)
+    print('Mean Euclid ARI score: %.5f' % mean_euc_ari)
     paired_ttest = ttest_rel(anchor_ari_scores, cand_ari_scores)
     print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest[0], paired_ttest[1]))
+    print('Mean hq ARI score: %.5f' % mean_ari_hq)
+    print('Mean hq Cosine ARI score: %.5f' % mean_cos_ari_hq)
+    print('Mean hq Euclid ARI score: %.5f' % mean_euc_ari_hq)
+    paired_ttest_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
+    print('Paired ttest hq: %.5f, p val: %.5f' % (paired_ttest_hq[0], paired_ttest_hq[1]))
     #with open('/home/sk1105/sumanta/CATS_data/anchor_euc_y1test_hier.json', 'w') as f:
     #    json.dump(pagewise_euc_ari_score, f)
+    return test_auc, euclid_auc, cos_auc, mean_ari, mean_euc_ari, mean_cos_ari, mean_ari_hq, mean_euc_ari_hq, \
+           mean_cos_ari_hq, paired_ttest, paired_ttest_hq
 
 def main():
 
     parser = argparse.ArgumentParser(description='Run CATS model')
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")
-    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
-    parser.add_argument('-pp', '--parapairs', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
-    parser.add_argument('-tp', '--test_pids', default="by1train-all-pids.npy")
-    parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1train-context-meanall-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-meanall-qvecs.npy")
+
+    parser.add_argument('-qt1', '--qry_attn_test1', default="by1train-qry-attn-bal-allpos.tsv")
+    parser.add_argument('-aql1', '--art_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
+    parser.add_argument('-tql1', '--top_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql1', '--hier_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-pp1', '--parapairs1', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
+    parser.add_argument('-tp1', '--test_pids1', default="by1train-all-pids.npy")
+    parser.add_argument('-tv1', '--test_pvecs1', default="by1train-all-paravecs.npy")
+    parser.add_argument('-tq1', '--test_qids1', default="by1train-context-meanall-qids.npy")
+    parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-meanall-qvecs.npy")
+
+    parser.add_argument('-qt2', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
+    parser.add_argument('-tql2', '--top_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql2', '--hier_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-pp2', '--parapairs2', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
+    parser.add_argument('-tp2', '--test_pids2', default="by1test-all-pids.npy")
+    parser.add_argument('-tv2', '--test_pvecs2', default="by1test-all-paravecs.npy")
+    parser.add_argument('-tq2', '--test_qids2', default="by1test-context-meanall-qids.npy")
+    parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-meanall-qvecs.npy")
+
     parser.add_argument('-mt', '--model_type', default="scaled") #cats, scaled
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cavs_meanall_b32_l0.001_i5.model")
 
     '''
-    parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
-    parser.add_argument('-aq', '--art_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
-    parser.add_argument('-hq', '--hier_qrels', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
-    parser.add_argument('-pp', '--parapairs',
-                        default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
-    parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")
-    parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")
-    parser.add_argument('-tq', '--test_qids', default="by1test-context-meanall-qids.npy")
-    parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-meanall-qvecs.npy")
-    parser.add_argument('-mt', '--model_type', default="scaled")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cavs_meanall_b32_l0.001_i5.model")
-
-    
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-qt', '--qry_attn_test', default="by2test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aq', '--art_qrels',
@@ -237,9 +287,54 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    eval_all_pairs(args.parapairs, args.model_path, args.model_type, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids, dat+args.test_qvecs)
-    eval_cluster(args.model_path, args.model_type, dat+args.qry_attn_test, dat+args.test_pids, dat+args.test_pvecs, dat+args.test_qids,
-                 dat+args.test_qvecs, args.art_qrels, args.hier_qrels)
+    all_auc1, all_euc_auc1, all_cos_auc1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
+                                                          dat + args.test_pids1, dat + args.test_pvecs1,
+                                                          dat + args.test_qids1, dat + args.test_qvecs1)
+    bal_auc1, bal_euc_auc1, bal_cos_auc1, mean_ari1, mean_euc_ari1, mean_cos_ari1, mean_ari1_hq, mean_euc_ari1_hq, \
+    mean_cos_ari1_hq, ttest1, ttest1_hq = eval_cluster(args.model_path,
+                                                                                              args.model_type,
+                                                                                              dat + args.qry_attn_test1,
+                                                                                              dat + args.test_pids1,
+                                                                                              dat + args.test_pvecs1,
+                                                                                              dat + args.test_qids1,
+                                                                                              dat + args.test_qvecs1,
+                                                                                              args.art_qrels1,
+                                                                                              args.top_qrels1,
+                                                                                              args.hier_qrels1)
+
+    all_auc2, all_euc_auc2, all_cos_auc2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
+                                                          dat + args.test_pids2, dat + args.test_pvecs2,
+                                                          dat + args.test_qids2, dat + args.test_qvecs2)
+    bal_auc2, bal_euc_auc2, bal_cos_auc2, mean_ari2, mean_euc_ari2, mean_cos_ari2, mean_ari2_hq, mean_euc_ari2_hq, \
+    mean_cos_ari2_hq, ttest2, ttest2_hq = eval_cluster(args.model_path,
+                                                                                              args.model_type,
+                                                                                              dat + args.qry_attn_test2,
+                                                                                              dat + args.test_pids2,
+                                                                                              dat + args.test_pvecs2,
+                                                                                              dat + args.test_qids2,
+                                                                                              dat + args.test_qvecs2,
+                                                                                              args.art_qrels2,
+                                                                                              args.top_qrels2,
+                                                                                              args.hier_qrels2)
+    print("benchmark Y1 train")
+    print("==================")
+    print("AUC method all pairs: %.5f, balanced: %.5f", (all_auc1, bal_auc1))
+    print("AUC euclid all pairs: %.5f, balanced: %.5f", (all_euc_auc1, bal_euc_auc1))
+    print("AUC cosine all pairs: %.5f, balanced: %.5f", (all_cos_auc1, bal_cos_auc1))
+    print("Method top ARI: %.5f, ttest_pval: %.5f, hier ARI: %.5f, ttest_pval: %.5f", (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
+    print("Euclid top ARI: %.5f, hier ARI: %.5f", (mean_euc_ari1, mean_euc_ari1_hq))
+    print("Cosine top ARI: %.5f, hier ARI: %.5f", (mean_cos_ari1, mean_cos_ari1_hq))
+
+    print("benchmark Y1 test")
+    print("==================")
+    print("AUC method all pairs: %.5f, balanced: %.5f", (all_auc2, bal_auc2))
+    print("AUC euclid all pairs: %.5f, balanced: %.5f", (all_euc_auc2, bal_euc_auc2))
+    print("AUC cosine all pairs: %.5f, balanced: %.5f", (all_cos_auc2, bal_cos_auc2))
+    print("Method top ARI: %.5f, ttest_pval: %.5f, hier ARI: %.5f, ttest_pval: %.5f",
+          (mean_ari2, ttest2[1], mean_ari2_hq, ttest2_hq[1]))
+    print("Euclid top ARI: %.5f, hier ARI: %.5f", (mean_euc_ari2, mean_euc_ari2_hq))
+    print("Cosine top ARI: %.5f, hier ARI: %.5f", (mean_cos_ari2, mean_cos_ari2_hq))
+
 
 if __name__ == '__main__':
     main()

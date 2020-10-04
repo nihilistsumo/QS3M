@@ -248,7 +248,7 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
             pair_score_dict = {}
             pair_euclid_score_dict = {}
             for pp in parapairs:
-                pair_score_dict[pp] = 1-pair_scores[pairs_page.index(pp)].item()
+                pair_score_dict[pp] = 1-pair_scores[pairs.index(pp)].item()
                 pair_euclid_score_dict[pp] = pair_euclid_scores[parapairs.index(pp)]
             dist_mat = []
             dist_euc_mat = []

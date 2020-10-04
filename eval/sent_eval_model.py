@@ -242,12 +242,8 @@ def eval_cluster(qry_attn_file_test, parapair_file, model, test_pids_file, test_
             pair_scores = (ypred_test_page - torch.min(ypred_test_page)) / (torch.max(ypred_test_page) - torch.min(ypred_test_page))
             pair_score_dict = {}
             pair_euclid_score_dict = {}
-            for pp in parapairs:
-                if pp in pairs_page:
-                    pair_score_dict[pp] = 1-pair_scores[pairs_page.index(pp)].item()
-                else:
-                    print(pp+' not in list')
-                    pair_score_dict[pp] = 1.0
+            for pp in pairs_page:
+                pair_score_dict[pp] = 1-pair_scores[pairs_page.index(pp)].item()
                 pair_euclid_score_dict[pp] = pair_euclid_scores[parapairs.index(pp)]
             dist_mat = []
             dist_euc_mat = []

@@ -86,7 +86,7 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_pids_file, test_pvecs_f
         euclid_auc = roc_auc_score(y_test, y_euclid)
         cand_auc.append(method_auc)
         anchor_auc.append(euclid_auc)
-        print(page + ' Method AUC: %.5f, euclid AUC: %.5f' % (method_auc, euclid_auc))
+        print(page + ' Method all-pair AUC: %.5f, euclid AUC: %.5f' % (method_auc, euclid_auc))
 
     paired_ttest = ttest_rel(anchor_auc, cand_auc)
     mean_auc = np.mean(np.array(cand_auc))
@@ -153,7 +153,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
     cand_ari_scores_hq = []
 
     for page in page_paras.keys():
-        print('Going to cluster '+page)
+        #print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         if qid not in test_data_builder.query_vecs.keys():
             print(qid + ' not present in query vecs dict')
@@ -173,6 +173,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
             paralist = page_paras[page]
             true_labels = []
             true_labels_hq = []
+            paralist.sort()
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
                 true_labels_hq.append(para_labels_hq[paralist[i]])
@@ -188,7 +189,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
                 pair_euclid_score_dict[parapairs[i]] = pair_euclid_scores[i]
             dist_mat = []
             dist_euc_mat = []
-            paralist.sort()
+
             for i in range(len(paralist)):
                 r = []
                 reuc = []
@@ -217,8 +218,8 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
             ari_score_hq = adjusted_rand_score(true_labels_hq, cl_labels_hq)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
             ari_euc_score_hq = adjusted_rand_score(true_labels_hq, cl_euclid_labels_hq)
-            print(page+' ARI: %.5f, Euclid ARI: %.5f' %
-                  (ari_score, ari_euc_score))
+            print(page+' Method bal AUC: %.5f, ARI: %.5f, Euclid bal AUC: %.5f, ARI: %.5f' %
+                  (test_auc_page, ari_score, euclid_auc_page, ari_euc_score))
             anchor_ari_scores.append(ari_euc_score)
             cand_ari_scores.append(ari_score)
             anchor_ari_scores_hq.append(ari_euc_score_hq)
@@ -231,15 +232,18 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
     mean_euc_ari = np.mean(np.array(anchor_ari_scores))
     mean_ari_hq = np.mean(np.array(cand_ari_scores_hq))
     mean_euc_ari_hq = np.mean(np.array(anchor_ari_scores_hq))
-
+    '''
     print('Mean ARI score: %.5f' % mean_ari)
     print('Mean Euclid ARI score: %.5f' % mean_euc_ari)
-    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    
     print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest_ari[0], paired_ttest_ari[1]))
     print('Mean hq ARI score: %.5f' % mean_ari_hq)
     print('Mean hq Euclid ARI score: %.5f' % mean_euc_ari_hq)
-    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
+    
     print('Paired ttest hq: %.5f, p val: %.5f' % (paired_ttest_ari_hq[0], paired_ttest_ari_hq[1]))
+    '''
+    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
     return test_auc, euclid_auc, mean_ari, mean_euc_ari, mean_ari_hq, mean_euc_ari_hq, \
            paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc
 

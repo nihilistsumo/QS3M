@@ -110,6 +110,26 @@ class InputCATSDatasetBuilder:
         #print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
         return X, y
 
+    def build_input_data_with_pairs(self, qry_attn_data=None):
+        X = []
+        y = []
+        pairs = []
+        if qry_attn_data == None:
+            qry_attn_data = self.query_attn_data
+        for qid, pid1, pid2, label in qry_attn_data:
+            if qid in self.query_vecs.keys():
+                row = np.hstack((self.query_vecs[qid], self.para_vecs[pid1], self.para_vecs[pid2]))
+                y.append(float(label))
+                X.append(row)
+                if pid1 < pid2:
+                    pairs.append(pid1 + '_' + pid2)
+                else:
+                    pairs.append(pid2 + '_' + pid1)
+        X = torch.tensor(X)
+        y = torch.tensor(y)
+        #print('X shape: ' + str(X.shape) + ', y shape: ' + str(y.shape))
+        return X, y, pairs
+
     def build_cluster_data(self, qid, paralist):
         all_para_vec_dict = {}
         for i, para in enumerate(self.paraids):

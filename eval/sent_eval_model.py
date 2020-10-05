@@ -58,7 +58,7 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
 
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         euclid_auc = roc_auc_score(y_test_para, y_euclid)
-        print(page+' Method all AUC: %.5f' % test_auc)
+        print(page+' Method all-pair AUC: %.5f' % test_auc)
         cand_auc.append(test_auc)
         anchor_auc.append(euclid_auc)
     paired_ttest = ttest_rel(anchor_auc, cand_auc)
@@ -147,6 +147,7 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
             paralist = page_paras[page]
             true_labels = []
             true_labels_hq = []
+            paralist.sort()
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
                 true_labels_hq.append(para_labels_hq[paralist[i]])
@@ -166,7 +167,7 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
                 pair_euclid_score_dict[pp] = pair_euclid_scores[parapairs.index(pp)]
             dist_mat = []
             dist_euc_mat = []
-            paralist.sort()
+
             for i in range(len(paralist)):
                 r = []
                 reuc = []
@@ -195,8 +196,8 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
             ari_score_hq = adjusted_rand_score(true_labels_hq, cl_labels_hq)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
             ari_euc_score_hq = adjusted_rand_score(true_labels_hq, cl_euclid_labels_hq)
-            print(page+' ARI: %.5f, Euclid ARI: %.5f' %
-                  (ari_score, ari_euc_score))
+            print(page+' Method bal AUC: %.5f, ARI: %.5f, Euclid bal AUC: %.5f, ARI: %.5f' %
+                  (test_auc_page, ari_score, euclid_auc_page, ari_euc_score))
             pagewise_ari_score[page] = ari_score
             pagewise_euc_ari_score[page] = ari_euc_score
             pagewise_hq_ari_score[page] = ari_score_hq
@@ -214,16 +215,18 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
     mean_euc_ari = np.mean(np.array(list(pagewise_euc_ari_score.values())))
     mean_ari_hq = np.mean(np.array(list(pagewise_hq_ari_score.values())))
     mean_euc_ari_hq = np.mean(np.array(list(pagewise_hq_euc_ari_score.values())))
-
+    '''
     print('Mean ARI score: %.5f' % mean_ari)
     print('Mean Euclid ARI score: %.5f' % mean_euc_ari)
-    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    
     print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest_ari[0], paired_ttest_ari[1]))
     print('Mean hq ARI score: %.5f' % mean_ari_hq)
     print('Mean hq Euclid ARI score: %.5f' % mean_euc_ari_hq)
-    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
+    
     print('Paired ttest hq: %.5f, p val: %.5f' % (paired_ttest_ari_hq[0], paired_ttest_ari_hq[1]))
-
+    '''
+    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
     return test_auc, euclid_auc, mean_ari, mean_euc_ari, mean_ari_hq, mean_euc_ari_hq, \
            paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc
 
@@ -286,7 +289,8 @@ def main():
     model = CATSSentenceModel(768, args.param_n, args.model_type, args.cats_path)
     model.load_state_dict(torch.load(args.model_path))
     model.eval()
-
+    print("\nPagewise benchmark Y1 test")
+    print("==========================")
     all_auc1, euc_auc1, ttest_auc1 = eval_all_pairs(args.parapairs1, model, dat+args.test_pids1,
                                                        dat+args.test_pvecs1, dat+args.test_pids_para1,
                                                        dat+args.test_pvecs_para1, dat+args.test_qids1,
@@ -298,6 +302,8 @@ def main():
                                                            dat+args.test_qvecs1, args.art_qrels1, args.top_qrels1,
                                                            args.hier_qrels1, args.max_seq)
 
+    print("\nPagewise benchmark Y1 train")
+    print("===========================")
     all_auc2, euc_auc2, ttest_auc2 = eval_all_pairs(args.parapairs2, model, dat + args.test_pids2,
                                                        dat + args.test_pvecs2, dat + args.test_pids_para2,
                                                        dat + args.test_pvecs_para2, dat + args.test_qids2,
@@ -312,20 +318,20 @@ def main():
     print("\nbenchmark Y1 test")
     print("==================")
     print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
-        all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
-    print("AUC euclid all pairs: %.5f, balanced: %.5f" % (euc_auc2, bal_euc_auc2))
-    print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
-          (mean_ari2, paired_ttest_ari2[1], mean_ari_hq2, paired_ttest_ari_hq2[1]))
-    print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari_hq2))
-
-    print("\nbenchmark Y1 train")
-    print("==================")
-    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
         all_auc1, ttest_auc1[1], bal_auc1, ttest_bal_auc1[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (euc_auc1, bal_euc_auc1))
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
           (mean_ari1, paired_ttest_ari1[1], mean_ari_hq1, paired_ttest_ari_hq1[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari1, mean_euc_ari_hq1))
+
+    print("\nbenchmark Y1 train")
+    print("==================")
+    print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
+        all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
+    print("AUC euclid all pairs: %.5f, balanced: %.5f" % (euc_auc2, bal_euc_auc2))
+    print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
+          (mean_ari2, paired_ttest_ari2[1], mean_ari_hq2, paired_ttest_ari_hq2[1]))
+    print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari_hq2))
 
 if __name__ == '__main__':
     main()

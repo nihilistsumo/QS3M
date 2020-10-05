@@ -317,7 +317,8 @@ def main():
     '''
     args = parser.parse_args()
     dat = args.data_dir
-
+    print("\nPagewise benchmark Y1 train")
+    print("===========================")
     all_auc1, all_euc_auc1, all_cos_auc1, ttest_auc1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
                                                           dat + args.test_pids1, dat + args.test_pvecs1,
                                                           dat + args.test_qids1, dat + args.test_qvecs1)
@@ -332,7 +333,8 @@ def main():
                                                                                               args.art_qrels1,
                                                                                               args.top_qrels1,
                                                                                               args.hier_qrels1)
-
+    print("\nPagewise benchmark Y1 test")
+    print("==========================")
     all_auc2, all_euc_auc2, all_cos_auc2, ttest_auc2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
                                                           dat + args.test_pids2, dat + args.test_pvecs2,
                                                           dat + args.test_qids2, dat + args.test_qvecs2)

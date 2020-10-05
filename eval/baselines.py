@@ -249,36 +249,26 @@ def main():
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
 
     parser.add_argument('-qt1', '--qry_attn_test1', default="by1train-qry-attn-bal-allpos.tsv")
-    parser.add_argument('-aql1', '--art_qrels1',
-                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
-    parser.add_argument('-tql1', '--top_qrels1',
-                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
-    parser.add_argument('-hql1', '--hier_qrels1',
-                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
-    parser.add_argument('-pp1', '--parapairs1',
-                        default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
+    parser.add_argument('-aql1', '--art_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
+    parser.add_argument('-tql1', '--top_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql1', '--hier_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-pp1', '--parapairs1', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
+    parser.add_argument('-ptx1', '--ptext_file1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/by1train_paratext/by1train_paratext.tsv")
     parser.add_argument('-tp1', '--test_pids1', default="by1train-all-pids.npy")
     parser.add_argument('-tv1', '--test_pvecs1', default="by1train-all-paravecs.npy")
     parser.add_argument('-tq1', '--test_qids1', default="by1train-context-qids.npy")
     parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-qvecs.npy")
 
     parser.add_argument('-qt2', '--qry_attn_test2', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
-    parser.add_argument('-aql2', '--art_qrels2',
-                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
-    parser.add_argument('-tql2', '--top_qrels2',
-                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
-    parser.add_argument('-hql2', '--hier_qrels2',
-                        default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
-    parser.add_argument('-pp2', '--parapairs2',
-                        default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
+    parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
+    parser.add_argument('-tql2', '--top_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql2', '--hier_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-pp2', '--parapairs2', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
+    parser.add_argument('-ptx2', '--ptext_file2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/by1test_paratext/by1test_paratext.tsv")
     parser.add_argument('-tp2', '--test_pids2', default="by1test-all-pids.npy")
     parser.add_argument('-tv2', '--test_pvecs2', default="by1test-all-paravecs.npy")
     parser.add_argument('-tq2', '--test_qids2', default="by1test-context-qids.npy")
     parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-qvecs.npy")
-
-    parser.add_argument('-mt', '--model_type', default="cats")  # cats, scaled
-    parser.add_argument('-mp', '--model_path',
-                        default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
@@ -299,13 +289,13 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    all_auc1, all_euc_auc1, all_cos_auc1, ttest_auc1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
+    all_auc1, all_euc_auc1, ttest_auc1 = eval_all_pairs(args.parapairs1, args.ptext_file1,
                                                                       dat + args.test_pids1, dat + args.test_pvecs1,
                                                                       dat + args.test_qids1, dat + args.test_qvecs1)
-    bal_auc1, bal_euc_auc1, bal_cos_auc1, mean_ari1, mean_euc_ari1, mean_cos_ari1, mean_ari1_hq, mean_euc_ari1_hq, \
-    mean_cos_ari1_hq, ttest1, ttest1_hq, ttest_bal_auc1 = eval_cluster(args.model_path,
-                                                                       args.model_type,
-                                                                       dat + args.qry_attn_test1,
+
+    bal_auc1, bal_euc_auc1, mean_ari1, mean_euc_ari1, mean_ari1_hq, mean_euc_ari1_hq, \
+    ttest1, ttest1_hq, ttest_bal_auc1 = eval_cluster(dat + args.qry_attn_test1,
+                                                                       args.ptext_file1,
                                                                        dat + args.test_pids1,
                                                                        dat + args.test_pvecs1,
                                                                        dat + args.test_qids1,
@@ -314,40 +304,36 @@ def main():
                                                                        args.top_qrels1,
                                                                        args.hier_qrels1)
 
-    all_auc2, all_euc_auc2, all_cos_auc2, ttest_auc2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
-                                                                      dat + args.test_pids2, dat + args.test_pvecs2,
-                                                                      dat + args.test_qids2, dat + args.test_qvecs2)
-    bal_auc2, bal_euc_auc2, bal_cos_auc2, mean_ari2, mean_euc_ari2, mean_cos_ari2, mean_ari2_hq, mean_euc_ari2_hq, \
-    mean_cos_ari2_hq, ttest2, ttest2_hq, ttest_bal_auc2 = eval_cluster(args.model_path,
-                                                                       args.model_type,
-                                                                       dat + args.qry_attn_test2,
-                                                                       dat + args.test_pids2,
-                                                                       dat + args.test_pvecs2,
-                                                                       dat + args.test_qids2,
-                                                                       dat + args.test_qvecs2,
-                                                                       args.art_qrels2,
-                                                                       args.top_qrels2,
-                                                                       args.hier_qrels2)
+    all_auc2, all_euc_auc2, ttest_auc2 = eval_all_pairs(args.parapairs2, args.ptext_file2,
+                                                        dat + args.test_pids2, dat + args.test_pvecs2,
+                                                        dat + args.test_qids2, dat + args.test_qvecs2)
+
+    bal_auc2, bal_euc_auc2, mean_ari2, mean_euc_ari2, mean_ari2_hq, mean_euc_ari2_hq, \
+    ttest2, ttest2_hq, ttest_bal_auc2 = eval_cluster(dat + args.qry_attn_test2,
+                                                     args.ptext_file2,
+                                                     dat + args.test_pids2,
+                                                     dat + args.test_pvecs2,
+                                                     dat + args.test_qids2,
+                                                     dat + args.test_qvecs2,
+                                                     args.art_qrels2,
+                                                     args.top_qrels2,
+                                                     args.hier_qrels2)
     print("\nbenchmark Y1 test")
     print("==================")
     print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
         all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc2, bal_euc_auc2))
-    print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc2, bal_cos_auc2))
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
           (mean_ari2, ttest2[1], mean_ari2_hq, ttest2_hq[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari2_hq))
-    print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari2, mean_cos_ari2_hq))
 
     print("\nbenchmark Y1 train")
     print("==================")
     print("AUC method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
         all_auc1, ttest_auc1[1], bal_auc1, ttest_bal_auc1[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc1, bal_euc_auc1))
-    print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc1, bal_cos_auc1))
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" % (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari1, mean_euc_ari1_hq))
-    print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari1, mean_cos_ari1_hq))
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ import numpy as np
 from numpy.random import seed
 seed(42)
 from hashlib import sha1
-from sklearn.metrics import roc_auc_score, adjusted_rand_score
+from sklearn.metrics import roc_auc_score, adjusted_rand_score, f1_score
 from sklearn.cluster import AgglomerativeClustering, DBSCAN
 import argparse
 import math
@@ -35,6 +35,8 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
     pagewise_all_cos_auc = {}
     anchor_auc = []
     cand_auc = []
+    anchor_f1 = []
+    cand_f1 = []
     qry_attn = []
     for page in parapairs.keys():
         qid = 'Query:' + sha1(str.encode(page)).hexdigest()
@@ -57,26 +59,36 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
 
         ypred_test = model(X_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+        test_f1 = f1_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
         cos_auc = roc_auc_score(y_test, y_cos)
+        cos_f1 = f1_score(y_test, y_cos)
         y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
         euclid_auc = roc_auc_score(y_test, y_euclid)
+        euclid_f1 = f1_score(y_test, y_euclid)
         pagewise_all_auc[page] = test_auc
         pagewise_all_euc_auc[page] = euclid_auc
         pagewise_all_cos_auc[page] = cos_auc
         anchor_auc.append(euclid_auc)
+        anchor_f1.append(euclid_f1)
         cand_auc.append(test_auc)
-        print(page+' Method all-pair AUC: %.5f, euclid AUC: %.5f, cosine AUC: %.5f' % (test_auc, euclid_auc, cos_auc))
+        cand_f1.append(test_f1)
+        print(page+' Method all-pair AUC: %.5f, F1: %.5f, euclid AUC: %.5f, F1: %.5f, cosine AUC: %.5f, F1: %.5f' %
+              (test_auc, test_f1, euclid_auc, euclid_f1, cos_auc, cos_f1))
 
     paired_ttest = ttest_rel(anchor_auc, cand_auc)
+    paired_ttest_f1 = ttest_rel(anchor_f1, cand_f1)
     mean_auc = np.mean(np.array(list(pagewise_all_auc.values())))
+    mean_f1 = np.mean(np.array(test_f1))
     mean_euclid_auc = np.mean(np.array(list(pagewise_all_euc_auc.values())))
+    mean_euclid_f1 = np.mean(np.array(euclid_f1))
     mean_cos_auc = np.mean(np.array(list(pagewise_all_cos_auc.values())))
+    mean_cos_f1 = np.mean(np.array(cos_f1))
 
-    return mean_auc, mean_euclid_auc, mean_cos_auc, paired_ttest
+    return mean_auc, mean_euclid_auc, mean_cos_auc, paired_ttest, mean_f1, mean_euclid_f1, mean_cos_f1, paired_ttest_f1
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, hier_qrels):
@@ -137,8 +149,11 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     pagewise_euc_ari_score = {}
     pagewise_hq_euc_ari_score = {}
     anchor_auc = []
+    anchor_f1 = []
     cand_auc = []
+    cand_f1 = []
     cos_auc = []
+    cos_f1 = []
     anchor_ari_scores = []
     cand_ari_scores = []
     anchor_ari_scores_hq = []
@@ -155,15 +170,21 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             X_test_page, y_test_page = test_data_builder.build_input_data(qry_attn_for_page)
             ypred_test_page = model(X_test_page)
             test_auc_page = roc_auc_score(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
+            test_f1_page = f1_score(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
 
             y_cos_page = cos(X_test_page[:, 768:768 * 2], X_test_page[:, 768 * 2:])
             cos_auc_page = roc_auc_score(y_test_page, y_cos_page)
+            cos_f1_page = f1_score(y_test_page, y_cos_page)
             y_euclid_page = torch.sqrt(torch.sum((X_test_page[:, 768:768 * 2] - X_test_page[:, 768 * 2:]) ** 2, 1)).numpy()
             y_euclid_page = 1 - (y_euclid_page - np.min(y_euclid_page)) / (np.max(y_euclid_page) - np.min(y_euclid_page))
             euclid_auc_page = roc_auc_score(y_test_page, y_euclid_page)
+            euclid_f1_page = f1_score(y_test_page, y_euclid_page)
             anchor_auc.append(euclid_auc_page)
+            anchor_f1.append(euclid_f1_page)
             cand_auc.append(test_auc_page)
+            cand_f1.append(test_f1_page)
             cos_auc.append(cos_auc_page)
+            cos_f1.append(cos_f1_page)
 
             paralist = page_paras[page]
             true_labels = []
@@ -226,8 +247,8 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             ari_base_score_hq = adjusted_rand_score(true_labels_hq, cl_base_labels_hq)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
             ari_euc_score_hq = adjusted_rand_score(true_labels_hq, cl_euclid_labels_hq)
-            print(page+' Method bal AUC: %.5f, ARI: %.5f, Base bal AUC: %.5f, ARI: %.5f, Euclid bal AUC: %.5f, ARI: %.5f' %
-                  (test_auc_page, ari_score, cos_auc_page, ari_base_score, euclid_auc_page, ari_euc_score))
+            print(page+' Method bal AUC: %.5f, F1: %.5f, ARI: %.5f, Base bal AUC: %.5f, F1: %.5f, ARI: %.5f, Euclid bal AUC: %.5f, F1: %.5f, ARI: %.5f' %
+                  (test_auc_page, test_f1_page, ari_score, cos_auc_page, cos_f1_page, ari_base_score, euclid_auc_page, euclid_f1_page, ari_euc_score))
             pagewise_ari_score[page] = ari_score
             pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
@@ -242,9 +263,13 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             cand_ari_scores_hq.append(ari_score_hq)
 
     test_auc = np.mean(np.array(cand_auc))
+    test_f1 = np.mean(np.array(cand_f1))
     euclid_auc = np.mean(np.array(anchor_auc))
+    euclid_f1 = np.mean(np.array(anchor_f1))
     cos_auc = np.mean(np.array(cos_auc))
+    cos_f1 = np.mean(np.array(cos_f1))
     paired_ttest_auc = ttest_rel(anchor_auc, cand_auc)
+    paired_ttest_f1 = ttest_rel(anchor_f1, cand_f1)
     mean_ari = np.mean(np.array(list(pagewise_ari_score.values())))
     mean_cos_ari = np.mean(np.array(list(pagewise_base_ari_score.values())))
     mean_euc_ari = np.mean(np.array(list(pagewise_euc_ari_score.values())))
@@ -268,7 +293,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
     paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
     return test_auc, euclid_auc, cos_auc, mean_ari, mean_euc_ari, mean_cos_ari, mean_ari_hq, mean_euc_ari_hq, \
-           mean_cos_ari_hq, paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc
+           mean_cos_ari_hq, paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc, test_f1, euclid_f1, cos_f1, paired_ttest_f1
 
 def main():
 
@@ -319,11 +344,11 @@ def main():
     dat = args.data_dir
     print("\nPagewise benchmark Y1 train")
     print("===========================")
-    all_auc1, all_euc_auc1, all_cos_auc1, ttest_auc1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
+    all_auc1, all_euc_auc1, all_cos_auc1, ttest_auc1, all_fm1, all_euc_fm1, all_cos_fm1, ttest_fm1 = eval_all_pairs(args.parapairs1, args.model_path, args.model_type,
                                                           dat + args.test_pids1, dat + args.test_pvecs1,
                                                           dat + args.test_qids1, dat + args.test_qvecs1)
     bal_auc1, bal_euc_auc1, bal_cos_auc1, mean_ari1, mean_euc_ari1, mean_cos_ari1, mean_ari1_hq, mean_euc_ari1_hq, \
-    mean_cos_ari1_hq, ttest1, ttest1_hq, ttest_bal_auc1 = eval_cluster(args.model_path,
+    mean_cos_ari1_hq, ttest1, ttest1_hq, ttest_bal_auc1, bal_fm1, bal_euc_fm1, bal_cos_fm1, ttest_bal_fm1 = eval_cluster(args.model_path,
                                                                                               args.model_type,
                                                                                               dat + args.qry_attn_test1,
                                                                                               dat + args.test_pids1,
@@ -335,11 +360,11 @@ def main():
                                                                                               args.hier_qrels1)
     print("\nPagewise benchmark Y1 test")
     print("==========================")
-    all_auc2, all_euc_auc2, all_cos_auc2, ttest_auc2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
+    all_auc2, all_euc_auc2, all_cos_auc2, ttest_auc2, all_fm2, all_euc_fm2, all_cos_fm2, ttest_fm2 = eval_all_pairs(args.parapairs2, args.model_path, args.model_type,
                                                           dat + args.test_pids2, dat + args.test_pvecs2,
                                                           dat + args.test_qids2, dat + args.test_qvecs2)
     bal_auc2, bal_euc_auc2, bal_cos_auc2, mean_ari2, mean_euc_ari2, mean_cos_ari2, mean_ari2_hq, mean_euc_ari2_hq, \
-    mean_cos_ari2_hq, ttest2, ttest2_hq, ttest_bal_auc2 = eval_cluster(args.model_path,
+    mean_cos_ari2_hq, ttest2, ttest2_hq, ttest_bal_auc2, bal_fm2, bal_euc_fm2, bal_cos_fm2, ttest_bal_fm2 = eval_cluster(args.model_path,
                                                                                               args.model_type,
                                                                                               dat + args.qry_attn_test2,
                                                                                               dat + args.test_pids2,
@@ -355,6 +380,10 @@ def main():
     all_auc2, ttest_auc2[1], bal_auc2, ttest_bal_auc2[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc2, bal_euc_auc2))
     print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc2, bal_cos_auc2))
+    print("F1 method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
+        all_fm2, ttest_fm2[1], bal_fm2, ttest_bal_fm2[1]))
+    print("F1 euclid all pairs: %.5f, balanced: %.5f" % (all_euc_fm2, bal_euc_fm2))
+    print("F1 cosine all pairs: %.5f, balanced: %.5f" % (all_cos_fm2, bal_cos_fm2))
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
           (mean_ari2, ttest2[1], mean_ari2_hq, ttest2_hq[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari2_hq))
@@ -366,6 +395,10 @@ def main():
         all_auc1, ttest_auc1[1], bal_auc1, ttest_bal_auc1[1]))
     print("AUC euclid all pairs: %.5f, balanced: %.5f" % (all_euc_auc1, bal_euc_auc1))
     print("AUC cosine all pairs: %.5f, balanced: %.5f" % (all_cos_auc1, bal_cos_auc1))
+    print("F1 method all pairs: %.5f (p %.5f), balanced: %.5f (p %.5f)" % (
+        all_fm1, ttest_fm1[1], bal_fm1, ttest_bal_fm1[1]))
+    print("F1 euclid all pairs: %.5f, balanced: %.5f" % (all_euc_fm1, bal_euc_fm1))
+    print("F1 cosine all pairs: %.5f, balanced: %.5f" % (all_cos_fm1, bal_cos_fm1))
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" % (mean_ari1, ttest1[1], mean_ari1_hq, ttest1_hq[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari1, mean_euc_ari1_hq))
     print("Cosine top ARI: %.5f, hier ARI: %.5f" % (mean_cos_ari1, mean_cos_ari1_hq))

@@ -44,11 +44,6 @@ def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
     else:
         return score
 
-def eval_baseline(parapairs_file, test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels):
-    all_auc, all_euc_auc, all_ttest = eval_all_pairs(parapairs_file, test_ptext_file, test_qids_file)
-    #bal_auc, mean_ari = eval_cluster(test_ptext_file, qry_attn_file_test, test_qids_file, article_qrels, top_qrels)
-    print("All AUC: %.5f, Balanced AUC: %.5f, mean ARI: %.5f" %(all_auc, bal_auc, mean_ari))
-
 def eval_all_pairs(parapairs_data, test_ptext_file, test_pids_file, test_pvecs_file, test_qids_file, test_qvecs_file):
     ptext_dict = {}
     with open(test_ptext_file, 'r') as f:

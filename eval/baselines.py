@@ -12,6 +12,14 @@ import argparse
 
 tfidf_vec_dict = {}
 
+def calc_f1(y_true, y_pred):
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    yp = (y_pred - np.min(y_pred)) / (np.max(y_pred) - np.min(y_pred))
+    yp = np.array([1.0 if d > 0.5 else 0.0 for d in yp])
+    test_f1 = f1_score(y_true, yp)
+    return test_f1
+
 def jaccard(p1text, p2text):
     a = set(p1text.split())
     b = set(p2text.split())
@@ -83,11 +91,11 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_pids_file, test_pvecs_f
             continue
 
         method_auc = roc_auc_score(y, y_baseline)
-        method_f1 = f1_score(y, y_baseline)
+        method_f1 = calc_f1(y, y_baseline)
         y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
         euclid_auc = roc_auc_score(y_test, y_euclid)
-        euclid_f1 = f1_score(y_test, y_euclid)
+        euclid_f1 = calc_f1(y_test, y_euclid)
         cand_auc.append(method_auc)
         cand_f1.append(method_f1)
         anchor_auc.append(euclid_auc)
@@ -175,14 +183,14 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
             pair_scores_bal = (pair_scores_bal - np.min(pair_scores_bal)) / (np.max(pair_scores_bal) - np.min(pair_scores_bal))
             test_auc_page = roc_auc_score(y_test_page, pair_scores_bal)
             cand_auc.append(test_auc_page)
-            test_f1_page = f1_score(y_test_page, pair_scores_bal)
+            test_f1_page = calc_f1(y_test_page, pair_scores_bal)
             cand_f1.append(test_f1_page)
 
             y_euclid_page = torch.sqrt(torch.sum((X_test_page[:, 768:768 * 2] - X_test_page[:, 768 * 2:]) ** 2, 1)).numpy()
             y_euclid_page = 1 - (y_euclid_page - np.min(y_euclid_page)) / (np.max(y_euclid_page) - np.min(y_euclid_page))
             euclid_auc_page = roc_auc_score(y_test_page, y_euclid_page)
             anchor_auc.append(euclid_auc_page)
-            euclid_f1_page = f1_score(y_test_page, y_euclid_page)
+            euclid_f1_page = calc_f1(y_test_page, y_euclid_page)
             anchor_f1.append(euclid_f1_page)
 
             paralist = page_paras[page]

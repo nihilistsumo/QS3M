@@ -18,6 +18,14 @@ import time
 import json
 from scipy.stats import ttest_rel
 
+def calc_f1(y_true, y_pred):
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    yp = (y_pred - np.min(y_pred)) / (np.max(y_pred) - np.min(y_pred))
+    yp = np.array([1.0 if d > 0.5 else 0.0 for d in yp])
+    test_f1 = f1_score(y_true, yp)
+    return test_f1
+
 def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file):
     test_pids = np.load(test_pids_file)
@@ -59,18 +67,16 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
 
         ypred_test = model(X_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-        yp = list((ypred_test - torch.min(ypred_test)) / (torch.max(ypred_test) - torch.min(ypred_test)))
-        yp = [1.0 if d > 0.5 else 0.0 for d in yp]
-        test_f1 = f1_score(y_test.detach().cpu().numpy(), yp)
+        test_f1 = calc_f1(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
         cos_auc = roc_auc_score(y_test, y_cos)
-        cos_f1 = f1_score(y_test, y_cos)
+        cos_f1 = calc_f1(y_test, y_cos)
         y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
         euclid_auc = roc_auc_score(y_test, y_euclid)
-        euclid_f1 = f1_score(y_test, y_euclid)
+        euclid_f1 = calc_f1(y_test, y_euclid)
         pagewise_all_auc[page] = test_auc
         pagewise_all_euc_auc[page] = euclid_auc
         pagewise_all_cos_auc[page] = cos_auc
@@ -172,15 +178,15 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             X_test_page, y_test_page = test_data_builder.build_input_data(qry_attn_for_page)
             ypred_test_page = model(X_test_page)
             test_auc_page = roc_auc_score(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
-            test_f1_page = f1_score(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
+            test_f1_page = calc_f1(y_test_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
 
             y_cos_page = cos(X_test_page[:, 768:768 * 2], X_test_page[:, 768 * 2:])
             cos_auc_page = roc_auc_score(y_test_page, y_cos_page)
-            cos_f1_page = f1_score(y_test_page, y_cos_page)
+            cos_f1_page = calc_f1(y_test_page, y_cos_page)
             y_euclid_page = torch.sqrt(torch.sum((X_test_page[:, 768:768 * 2] - X_test_page[:, 768 * 2:]) ** 2, 1)).numpy()
             y_euclid_page = 1 - (y_euclid_page - np.min(y_euclid_page)) / (np.max(y_euclid_page) - np.min(y_euclid_page))
             euclid_auc_page = roc_auc_score(y_test_page, y_euclid_page)
-            euclid_f1_page = f1_score(y_test_page, y_euclid_page)
+            euclid_f1_page = calc_f1(y_test_page, y_euclid_page)
             anchor_auc.append(euclid_auc_page)
             anchor_f1.append(euclid_f1_page)
             cand_auc.append(test_auc_page)

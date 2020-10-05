@@ -18,6 +18,14 @@ import time
 import json
 from scipy.stats import ttest_rel
 
+def calc_f1(y_true, y_pred):
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    yp = (y_pred - np.min(y_pred)) / (np.max(y_pred) - np.min(y_pred))
+    yp = np.array([1.0 if d > 0.5 else 0.0 for d in yp])
+    test_f1 = f1_score(y_true, yp)
+    return test_f1
+
 def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_pids_para_file, test_pvecs_para_file,
                    test_qids_file, test_qvecs_file, max_seq_len):
     test_pids = np.load(test_pids_file)
@@ -59,9 +67,9 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
 
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-        test_fm = f1_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+        test_fm = calc_f1(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
         euclid_auc = roc_auc_score(y_test_para, y_euclid)
-        euclid_fm = f1_score(y_test_para, y_euclid)
+        euclid_fm = calc_f1(y_test_para, y_euclid)
         print(page+' Method all-pair AUC: %.5f, F1: %.5f' % (test_auc, test_fm))
         cand_auc.append(test_auc)
         cand_f1.append(test_fm)
@@ -147,13 +155,13 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
             X_q_page, X_p_page, y_page, _ = test_data_builder.build_input_data(qry_attn_for_page)
             ypred_test_page = model(X_q_page, X_p_page)
             test_auc_page = roc_auc_score(y_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
-            test_f1_page = f1_score(y_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
+            test_f1_page = calc_f1(y_page.detach().cpu().numpy(), ypred_test_page.detach().cpu().numpy())
 
             X_para_page, y_para_page = test_data_builder_para.build_input_data(qry_attn_for_page)
             y_euclid_page = torch.sqrt(torch.sum((X_para_page[:, 768:768 * 2] - X_para_page[:, 768 * 2:]) ** 2, 1)).numpy()
             y_euclid_page = 1 - (y_euclid_page - np.min(y_euclid_page)) / (np.max(y_euclid_page) - np.min(y_euclid_page))
             euclid_auc_page = roc_auc_score(y_para_page, y_euclid_page)
-            euclid_f1_page = f1_score(y_para_page, y_euclid_page)
+            euclid_f1_page = calc_f1(y_para_page, y_euclid_page)
 
             anchor_auc.append(euclid_auc_page)
             cand_auc.append(test_auc_page)

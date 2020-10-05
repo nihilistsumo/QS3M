@@ -59,7 +59,9 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
 
         ypred_test = model(X_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-        test_f1 = f1_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+        yp = list((ypred_test - torch.min(ypred_test)) / (torch.max(ypred_test) - torch.min(ypred_test)))
+        yp = [1.0 if d > 0.5 else 0.0 for d in yp]
+        test_f1 = f1_score(y_test.detach().cpu().numpy(), yp)
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])

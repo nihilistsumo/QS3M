@@ -272,8 +272,8 @@ def main():
     parser.add_argument('-tv1', '--test_pvecs1', default="by1test-all-paravecs-sentwise.npy")
     parser.add_argument('-tpp1', '--test_pids_para1', default="by1test-all-pids.npy")
     parser.add_argument('-tvp1', '--test_pvecs_para1', default="by1test-all-paravecs.npy")
-    parser.add_argument('-tq1', '--test_qids1', default="by1test-context-qids.npy")
-    parser.add_argument('-tqv1', '--test_qvecs1', default="by1test-context-qvecs.npy")
+    parser.add_argument('-tq1', '--test_qids1', default="by1test-context-qids.npy") #change
+    parser.add_argument('-tqv1', '--test_qvecs1', default="by1test-context-qvecs.npy") #change
 
     parser.add_argument('-qt2', '--qry_attn_test2', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
@@ -284,14 +284,14 @@ def main():
     parser.add_argument('-tv2', '--test_pvecs2', default="by1train-all-paravecs-sentwise.npy")
     parser.add_argument('-tpp2', '--test_pids_para2', default="by1train-all-pids.npy")
     parser.add_argument('-tvp2', '--test_pvecs_para2', default="by1train-all-paravecs.npy")
-    parser.add_argument('-tq2', '--test_qids2', default="by1train-context-qids.npy")
-    parser.add_argument('-tqv2', '--test_qvecs2', default="by1train-context-qvecs.npy")
+    parser.add_argument('-tq2', '--test_qids2', default="by1train-context-qids.npy") #change
+    parser.add_argument('-tqv2', '--test_qvecs2', default="by1train-context-qvecs.npy") #change
 
-    parser.add_argument('-cp', '--cats_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+    parser.add_argument('-cp', '--cats_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model") #change
     parser.add_argument('-seq', '--max_seq', type=int, default=10)
     parser.add_argument('-pn', '--param_n', type=int, default=32)
     parser.add_argument('-mt', '--model_type', default="fcats")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/sentcats_maxlen_10_leadpara_b32_l0.0001_i6.model")
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/sentcats_maxlen_10_leadpara_b32_l0.0001_i6.model") #change
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

@@ -69,7 +69,7 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
         pagewise_all_cos_auc[page] = cos_auc
         anchor_auc.append(euclid_auc)
         cand_auc.append(test_auc)
-        print(page+' Method AUC: %.5f, euclid AUC: %.5f, cosine AUC: %.5f' % (test_auc, euclid_auc, cos_auc))
+        print(page+' Method all-pair AUC: %.5f, euclid AUC: %.5f, cosine AUC: %.5f' % (test_auc, euclid_auc, cos_auc))
 
     paired_ttest = ttest_rel(anchor_auc, cand_auc)
     mean_auc = np.mean(np.array(list(pagewise_all_auc.values())))
@@ -145,7 +145,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     cand_ari_scores_hq = []
 
     for page in page_paras.keys():
-        print('Going to cluster '+page)
+        #print('Going to cluster '+page)
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
         if qid not in test_data_builder.query_vecs.keys():
             print(qid + ' not present in query vecs dict')
@@ -168,6 +168,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             paralist = page_paras[page]
             true_labels = []
             true_labels_hq = []
+            paralist.sort()
             for i in range(len(paralist)):
                 true_labels.append(para_labels[paralist[i]])
                 true_labels_hq.append(para_labels_hq[paralist[i]])
@@ -188,7 +189,6 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             dist_mat = []
             dist_base_mat = []
             dist_euc_mat = []
-            paralist.sort()
             for i in range(len(paralist)):
                 r = []
                 rbase = []
@@ -226,8 +226,8 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
             ari_base_score_hq = adjusted_rand_score(true_labels_hq, cl_base_labels_hq)
             ari_euc_score = adjusted_rand_score(true_labels, cl_euclid_labels)
             ari_euc_score_hq = adjusted_rand_score(true_labels_hq, cl_euclid_labels_hq)
-            print(page+' ARI: %.5f, Base ARI: %.5f, Euclid ARI: %.5f' %
-                  (ari_score, ari_base_score, ari_euc_score))
+            print(page+' Method bal AUC: %.5f, ARI: %.5f, Base bal AUC: %.5f, ARI: %.5f, Euclid bal AUC: %.5f, ARI: %.5f' %
+                  (test_auc_page, ari_score, cos_auc_page, ari_base_score, euclid_auc_page, ari_euc_score))
             pagewise_ari_score[page] = ari_score
             pagewise_base_ari_score[page] = ari_base_score
             pagewise_euc_ari_score[page] = ari_euc_score
@@ -251,19 +251,22 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     mean_ari_hq = np.mean(np.array(list(pagewise_hq_ari_score.values())))
     mean_cos_ari_hq = np.mean(np.array(list(pagewise_hq_base_ari_score.values())))
     mean_euc_ari_hq = np.mean(np.array(list(pagewise_hq_euc_ari_score.values())))
-
+    '''
     print('Mean ARI score: %.5f' % mean_ari)
     print('Mean Cosine ARI score: %.5f' % mean_cos_ari)
     print('Mean Euclid ARI score: %.5f' % mean_euc_ari)
-    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    
     print('Paired ttest: %.5f, p val: %.5f' % (paired_ttest_ari[0], paired_ttest_ari[1]))
     print('Mean hq ARI score: %.5f' % mean_ari_hq)
     print('Mean hq Cosine ARI score: %.5f' % mean_cos_ari_hq)
     print('Mean hq Euclid ARI score: %.5f' % mean_euc_ari_hq)
-    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
+    
     print('Paired ttest hq: %.5f, p val: %.5f' % (paired_ttest_ari_hq[0], paired_ttest_ari_hq[1]))
     #with open('/home/sk1105/sumanta/CATS_data/anchor_euc_y1test_hier.json', 'w') as f:
     #    json.dump(pagewise_euc_ari_score, f)
+    '''
+    paired_ttest_ari = ttest_rel(anchor_ari_scores, cand_ari_scores)
+    paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
     return test_auc, euclid_auc, cos_auc, mean_ari, mean_euc_ari, mean_cos_ari, mean_ari_hq, mean_euc_ari_hq, \
            mean_cos_ari_hq, paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc
 

@@ -16,6 +16,7 @@ def train_lda_tm(train_ptext_dict, num_topics, update, passes, token_dict_out, m
     texts = [[t for t in doc if frequency[t] > 1] for doc in pre_docs]
     token_dict = corpora.Dictionary(texts)
     corpus = [token_dict.doc2bow(text) for text in texts]
+    print('Corpus prepared, going to train the model...')
 
     model = ldamodel.LdaModel(corpus=corpus, id2word=token_dict, num_topics=num_topics, update_every=update, passes=passes)
     token_dict.save(token_dict_out)

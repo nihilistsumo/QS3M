@@ -9,8 +9,32 @@ import math
 import torch
 from scipy.stats import ttest_rel
 import argparse
+from nltk.corpus import stopwords
+from collections import defaultdict
+from gensim import corpora
+from gensim.models import ldamodel
 
 tfidf_vec_dict = {}
+lda_tm_topic_dist = {}
+
+def lda_topic_model(test_ptext_dict, train_token_dict_path, trained_model_path):
+    model = ldamodel.LdaModel.load(trained_model_path)
+    token_dict = corpora.Dictionary.load(train_token_dict_path)
+    stops = stopwords.words('english')
+    paraids = list(test_ptext_dict.keys())
+    raw_docs = [test_ptext_dict[k] for k in paraids]
+    pre_docs = [[word for word in doc.lower().split() if word not in stops] for doc in raw_docs]
+    frequency = defaultdict(int)
+    for d in pre_docs:
+        for t in d:
+            frequency[t] += 1
+    texts = [[t for t in doc if frequency[t] > 1] for doc in pre_docs]
+    topic_vector_dict = dict()
+    unseen_corpus = [token_dict.doc2bow(text) for text in texts]
+    for p in range(len(paraids)):
+        topic_vec = model[unseen_corpus[p]]
+        topic_vector_dict[paraids[p]] = [(t[0], float(t[1])) for t in topic_vec]
+    return topic_vector_dict
 
 def calc_f1(y_true, y_pred):
     y_true = np.array(y_true)

@@ -29,12 +29,11 @@ def lda_topic_model(test_ptext_dict, train_token_dict_path, trained_model_path):
         for t in d:
             frequency[t] += 1
     texts = [[t for t in doc if frequency[t] > 1] for doc in pre_docs]
-    topic_vector_dict = dict()
     unseen_corpus = [token_dict.doc2bow(text) for text in texts]
     for p in range(len(paraids)):
         topic_vec = model[unseen_corpus[p]]
-        topic_vector_dict[paraids[p]] = [(t[0], float(t[1])) for t in topic_vec]
-    return topic_vector_dict
+        lda_tm_topic_dist[paraids[p]] = [(t[0], float(t[1])) for t in topic_vec]
+    return lda_tm_topic_dist
 
 def calc_f1(y_true, y_pred):
     y_true = np.array(y_true)
@@ -49,6 +48,10 @@ def jaccard(p1text, p2text):
     b = set(p2text.split())
     c = a.intersection(b)
     return float(len(c)) / (len(a) + len(b) - len(c))
+
+def tm_kldiv(pid1, pid2):
+    p1_topic_dist = lda_tm_topic_dist[pid1]
+    p2_topic_dist = lda_tm_topic_dist[pid2]
 
 def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
     if pid1 not in tfidf_vec_dict.keys():

@@ -26,7 +26,7 @@ def main():
     parser.add_argument('-tp', '--train_ptext', default="/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paratext.tsv")
     parser.add_argument('-nt', '--num_topics', type=int, default=100)
     parser.add_argument('-up', '--update', type=int, default=5)
-    parser.add_argument('ps', '--passes', type=int, default=3)
+    parser.add_argument('-ps', '--passes', type=int, default=3)
     parser.add_argument('-td', '--token_dict_out', default="/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-lda-tm.tokendict")
     parser.add_argument('-mo', '--model_out', default="/home/sk1105/sumanta/CATS_data/topic_model_half-y1train-qry-attn.model")
 

@@ -25,11 +25,11 @@ def train_lda_tm(train_ptext_dict, num_topics, update, passes, token_dict_out, m
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-tp', '--train_ptext', default="/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paratext.tsv")
-    parser.add_argument('-nt', '--num_topics', type=int, default=30)
-    parser.add_argument('-up', '--update', type=int, default=5)
+    parser.add_argument('-nt', '--num_topics', type=int, default=100)
+    parser.add_argument('-up', '--update', type=int, default=0)
     parser.add_argument('-ps', '--passes', type=int, default=3)
-    parser.add_argument('-td', '--token_dict_out', default="/home/sk1105/sumanta/CATS_data/topic_model/half-y1train-qry-attn-lda-tm.tokendict")
-    parser.add_argument('-mo', '--model_out', default="/home/sk1105/sumanta/CATS_data/topic_model/topic_model_half-y1train-qry-attn.model")
+    parser.add_argument('-td', '--token_dict_out', default="/home/sk1105/sumanta/CATS_data/topic_model/half-y1train-qry-attn-lda-tm-t100.tokendict")
+    parser.add_argument('-mo', '--model_out', default="/home/sk1105/sumanta/CATS_data/topic_model/topic_model_half-y1train-qry-attn-t100.model")
 
     args = parser.parse_args()
     ptext_dict = {}

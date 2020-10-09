@@ -17,7 +17,7 @@ from gensim.models import ldamodel
 
 tfidf_vec_dict = {}
 lda_tm_topic_dist = {}
-num_topics=100 #for topic model
+num_topics=500 #for topic model
 
 def lda_topic_model(test_ptext_path, train_token_dict_path, trained_model_path):
     ptext_dict = {}
@@ -328,8 +328,8 @@ def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
-    parser.add_argument('-tm', '--topic_model', default="/home/sk1105/sumanta/CATS_data/topic_model/topic_model_half-y1train-qry-attn-t100.model")
-    parser.add_argument('-td', '--token_dict', default="/home/sk1105/sumanta/CATS_data/topic_model/half-y1train-qry-attn-lda-tm-t100.tokendict")
+    parser.add_argument('-tm', '--topic_model', default="/home/sk1105/sumanta/CATS_data/topic_model/topic_model_half-y1train-qry-attn-t500.model")
+    parser.add_argument('-td', '--token_dict', default="/home/sk1105/sumanta/CATS_data/topic_model/half-y1train-qry-attn-lda-tm-t500.tokendict")
 
     parser.add_argument('-qt1', '--qry_attn_test1', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aql1', '--art_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")

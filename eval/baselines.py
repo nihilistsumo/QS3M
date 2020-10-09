@@ -17,7 +17,7 @@ from gensim.models import ldamodel
 
 tfidf_vec_dict = {}
 lda_tm_topic_dist = {}
-num_topics=30 #for topic model
+num_topics=100 #for topic model
 
 def lda_topic_model(test_ptext_path, train_token_dict_path, trained_model_path):
     ptext_dict = {}

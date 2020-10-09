@@ -8,6 +8,7 @@ from hashlib import sha1
 import math
 import torch
 from scipy.stats import ttest_rel
+from scipy.special import kl_div
 import argparse
 from nltk.corpus import stopwords
 from collections import defaultdict
@@ -16,6 +17,7 @@ from gensim.models import ldamodel
 
 tfidf_vec_dict = {}
 lda_tm_topic_dist = {}
+num_topics=30 #for topic model
 
 def lda_topic_model(test_ptext_dict, train_token_dict_path, trained_model_path):
     model = ldamodel.LdaModel.load(trained_model_path)
@@ -33,7 +35,6 @@ def lda_topic_model(test_ptext_dict, train_token_dict_path, trained_model_path):
     for p in range(len(paraids)):
         topic_vec = model[unseen_corpus[p]]
         lda_tm_topic_dist[paraids[p]] = [(t[0], float(t[1])) for t in topic_vec]
-    return lda_tm_topic_dist
 
 def calc_f1(y_true, y_pred):
     y_true = np.array(y_true)
@@ -49,9 +50,26 @@ def jaccard(p1text, p2text):
     c = a.intersection(b)
     return float(len(c)) / (len(a) + len(b) - len(c))
 
-def tm_kldiv(pid1, pid2):
-    p1_topic_dist = lda_tm_topic_dist[pid1]
-    p2_topic_dist = lda_tm_topic_dist[pid2]
+def kldiv(a, b):
+    score = 0
+    for s in kl_div(a, b):
+        if s != float("inf"):
+            score += s
+    return score
+
+def sparse_jsdiv_score(p1, p2):
+    v1 = lda_tm_topic_dist[p1]
+    v2 = lda_tm_topic_dist[p2]
+    x = [0] * num_topics
+    for v in v1:
+        x[v[0]] = v[1]
+    y = [0] * num_topics
+    for v in v2:
+        y[v[0]] = v[1]
+    m = [(x[i]+y[i])/2 for i in range(num_topics)]
+    kldiv1 = kldiv(x, m)
+    kldiv2 = kldiv(y, m)
+    return (kldiv1 + kldiv2)/2
 
 def tfidf_cosine_similarity(pid1, pid2, paratext_dict):
     if pid1 not in tfidf_vec_dict.keys():
@@ -108,7 +126,8 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_pids_file, test_pvecs_f
             qry_attn_ts.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
             y.append(int(parapairs[page]['labels'][i]))
             #y_baseline.append(tfidf_cosine_similarity(p1, p2, ptext_dict))
-            y_baseline.append(jaccard(ptext_dict[p1], ptext_dict[p2]))
+            #y_baseline.append(jaccard(ptext_dict[p1], ptext_dict[p2]))
+            y_baseline.append(sparse_jsdiv_score(p1, p2))
         X_test, y_test = test_data_builder.build_input_data(qry_attn_ts)
         if len(set(y_test.cpu().numpy())) < 2:
             continue
@@ -203,7 +222,8 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
             qry_attn_for_page = [d for d in qry_attn_ts if d[0]==qid]
             X_test_page, y_test_page, page_pairs = test_data_builder.build_input_data_with_pairs(qry_attn_for_page)
             #pair_scores_bal = [tfidf_cosine_similarity(pp.split('_')[0], pp.split('_')[1], ptext_dict) for pp in page_pairs]
-            pair_scores_bal = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in page_pairs]
+            #pair_scores_bal = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in page_pairs]
+            pair_scores_bal = [sparse_jsdiv_score(pp.split('_')[0], pp.split('_')[1]) for pp in page_pairs]
             pair_scores_bal = (pair_scores_bal - np.min(pair_scores_bal)) / (np.max(pair_scores_bal) - np.min(pair_scores_bal))
             test_auc_page = roc_auc_score(y_test_page, pair_scores_bal)
             cand_auc.append(test_auc_page)
@@ -226,7 +246,8 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
                 true_labels_hq.append(para_labels_hq[paralist[i]])
             X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
             #pair_scores = [tfidf_cosine_similarity(pp.split('_')[0], pp.split('_')[1], ptext_dict) for pp in parapairs]
-            pair_scores = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs]
+            #pair_scores = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs]
+            pair_scores = [sparse_jsdiv_score(pp.split('_')[0], pp.split('_')[1]) for pp in parapairs]
             pair_scores = (pair_scores - np.min(pair_scores)) / (np.max(pair_scores) - np.min(pair_scores))
             pair_euclid_scores = torch.sqrt(torch.sum((X_page[:, 768:768 * 2] - X_page[:, 768 * 2:])**2, 1)).numpy()
             pair_euclid_scores = (pair_euclid_scores - np.min(pair_euclid_scores)) / (np.max(pair_euclid_scores) - np.min(pair_euclid_scores))
@@ -302,6 +323,8 @@ def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
+    parser.add_argument('-tm', '--topic_model', default="/home/sk1105/sumanta/CATS_data/topic_model/topic_model_half-y1train-qry-attn.model")
+    parser.add_argument('-td', '--token_dict', default="/home/sk1105/sumanta/CATS_data/topic_model/half-y1train-qry-attn-lda-tm.tokendict")
 
     parser.add_argument('-qt1', '--qry_attn_test1', default="by1train-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aql1', '--art_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
@@ -343,6 +366,9 @@ def main():
     '''
     args = parser.parse_args()
     dat = args.data_dir
+    ##### for topic model#####
+    lda_topic_model(args.ptext_file1, args.token_dict, args.topic_model)
+    ##########################
     print("\nPagewise benchmark Y1 train")
     print("===========================")
     all_auc1, all_euc_auc1, ttest_auc1, all_fm1, all_euc_fm1, ttest_fm1 = eval_all_pairs(args.parapairs1, args.ptext_file1,
@@ -359,6 +385,9 @@ def main():
                                                                        args.art_qrels1,
                                                                        args.top_qrels1,
                                                                        args.hier_qrels1)
+    ##### for topic model#####
+    lda_topic_model(args.ptext_file2, args.token_dict, args.topic_model)
+    ##########################
     print("\nPagewise benchmark Y1 test")
     print("==========================")
     all_auc2, all_euc_auc2, ttest_auc2, all_fm2, all_euc_fm2, ttest_fm2 = eval_all_pairs(args.parapairs2, args.ptext_file2,

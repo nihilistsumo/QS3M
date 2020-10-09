@@ -19,12 +19,17 @@ tfidf_vec_dict = {}
 lda_tm_topic_dist = {}
 num_topics=30 #for topic model
 
-def lda_topic_model(test_ptext_dict, train_token_dict_path, trained_model_path):
+def lda_topic_model(test_ptext_path, train_token_dict_path, trained_model_path):
+    ptext_dict = {}
+    with open(test_ptext_path, 'r') as f:
+        for l in f:
+            if len(l.split('\t')) > 1:
+                ptext_dict[l.split('\t')[0]] = l.split('\t')[1].strip()
     model = ldamodel.LdaModel.load(trained_model_path)
     token_dict = corpora.Dictionary.load(train_token_dict_path)
     stops = stopwords.words('english')
-    paraids = list(test_ptext_dict.keys())
-    raw_docs = [test_ptext_dict[k] for k in paraids]
+    paraids = list(ptext_dict.keys())
+    raw_docs = [ptext_dict[k] for k in paraids]
     pre_docs = [[word for word in doc.lower().split() if word not in stops] for doc in raw_docs]
     frequency = defaultdict(int)
     for d in pre_docs:

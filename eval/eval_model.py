@@ -330,7 +330,7 @@ def main():
     parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-qvecs.npy") #change
 
     parser.add_argument('-mt', '--model_type', default="abl") #cats, scaled, abl
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/abl_cats_p1p2pd_leadpara_b32_l0.00001_i3.model") #change
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/ablcopy_cats_p1p2pd_leadpara_b32_l0.00001_i3.model") #change
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

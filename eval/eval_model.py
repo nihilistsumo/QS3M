@@ -316,8 +316,8 @@ def main():
     parser.add_argument('-pp1', '--parapairs1', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp1', '--test_pids1', default="by1train-all-pids.npy")
     parser.add_argument('-tv1', '--test_pvecs1', default="by1train-all-paravecs.npy")
-    parser.add_argument('-tq1', '--test_qids1', default="by1train-context-qids.npy") #change
-    parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-qvecs.npy") #change
+    parser.add_argument('-tq1', '--test_qids1', default="by1train-context-meanall-qids.npy") #change
+    parser.add_argument('-tqv1', '--test_qvecs1', default="by1train-context-meanall-qvecs.npy") #change
 
     parser.add_argument('-qt2', '--qry_attn_test2', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
     parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
@@ -326,11 +326,11 @@ def main():
     parser.add_argument('-pp2', '--parapairs2', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp2', '--test_pids2', default="by1test-all-pids.npy")
     parser.add_argument('-tv2', '--test_pvecs2', default="by1test-all-paravecs.npy")
-    parser.add_argument('-tq2', '--test_qids2', default="by1test-context-qids.npy") #change
-    parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-qvecs.npy") #change
+    parser.add_argument('-tq2', '--test_qids2', default="by1test-context-meanall-qids.npy") #change
+    parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-meanall-qvecs.npy") #change
 
-    parser.add_argument('-mt', '--model_type', default="abl") #cats, scaled, abl
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/ablcopy_cats_p1p2pd_leadpara_b32_l0.00001_i3.model") #change
+    parser.add_argument('-mt', '--model_type', default="cats") #cats, scaled, abl
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_meanall_b32_l0.00001_i3.model") #change
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

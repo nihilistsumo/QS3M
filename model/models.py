@@ -205,7 +205,7 @@ def main():
     parser.add_argument('-trv', '--train_pvecs', default="y1train-all-paravecs.npy")
     parser.add_argument('-trq', '--train_qids', default="half-y1train-qry-attn-context-title-qids.npy")
     parser.add_argument('-trqv', '--train_qvecs', default="half-y1train-qry-attn-context-title-qvecs.npy")
-    
+
     parser.add_argument('-qt', '--qry_attn_test', default="by1test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-tp', '--test_pids', default="by1test-all-pids.npy")
     parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")

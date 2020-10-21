@@ -212,7 +212,7 @@ def main():
     parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-title-qvecs.npy")
     parser.add_argument('-lr', '--lrate', type=float, default=0.00001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
-    parser.add_argument('-ep', '--epochs', type=int, default=2)
+    parser.add_argument('-ep', '--epochs', type=int, default=10)
     parser.add_argument('-ct', '--cats_type', default="cats")
     parser.add_argument('--cache', action='store_true')
     parser.add_argument('--save', action='store_true')

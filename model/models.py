@@ -211,7 +211,7 @@ def main():
     parser.add_argument('-tv', '--test_pvecs', default="by1train-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by1train-context-leadpara-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1train-context-leadpara-qvecs.npy")
-    parser.add_argument('-lr', '--lrate', type=float, default=0.01)
+    parser.add_argument('-lr', '--lrate', type=float, default=0.001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
     parser.add_argument('-ep', '--epochs', type=int, default=20)
     parser.add_argument('-ct', '--cats_type', default="scaled")

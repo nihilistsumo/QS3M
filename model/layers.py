@@ -305,7 +305,7 @@ class CATS_Scaled(nn.Module):
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
         self.Xp2 = X[:, 2 * self.emb_size:]
-        self.Xlq = self.relu(self.LL1(self.Xq))
+        self.Xlq = torch.relu(self.LL1(self.Xq))
         self.scale = torch.mm(self.Xlq, self.A)
         self.zp1 = torch.mul(self.Xp1, self.scale)
         self.zp2 = torch.mul(self.Xp2, self.scale)

@@ -181,7 +181,7 @@ def main():
     parser.add_argument('-np', '--param_n', type=int, default=32)
     parser.add_argument('-lr', '--lrate', type=float, default=0.0001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
-    parser.add_argument('-ep', '--epochs', type=int, default=10)
+    parser.add_argument('-ep', '--epochs', type=int, default=4)
     parser.add_argument('-mt', '--model_type', default="fcats")
     parser.add_argument('-cp', '--cats_path', default='/home/sk1105/sumanta/cats_deploy/model/saved_models/cats_title_b32_l0.00001_i4.model')
     parser.add_argument('--cache', action='store_true')

@@ -211,10 +211,10 @@ def main():
     parser.add_argument('-tv', '--test_pvecs', default="by1test-all-paravecs.npy")
     parser.add_argument('-tq', '--test_qids', default="by1test-context-leadpara-qids.npy")
     parser.add_argument('-tqv', '--test_qvecs', default="by1test-context-leadpara-qvecs.npy")
-    parser.add_argument('-lr', '--lrate', type=float, default=0.001)
+    parser.add_argument('-lr', '--lrate', type=float, default=0.00001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
-    parser.add_argument('-ep', '--epochs', type=int, default=10)
-    parser.add_argument('-ct', '--cats_type', default="scaled")
+    parser.add_argument('-ep', '--epochs', type=int, default=4)
+    parser.add_argument('-ct', '--cats_type', default="abl")
     parser.add_argument('--cache', action='store_true')
     parser.add_argument('--save', action='store_true')
 

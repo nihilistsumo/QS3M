@@ -261,9 +261,9 @@ def main():
 
     parser = argparse.ArgumentParser(description='Run CATS model')
 
-    parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
+    parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/new_cats_data/")
 
-    parser.add_argument('-qt1', '--qry_attn_test1', default="by1test-qry-attn-bal-allpos-for-eval.tsv")
+    parser.add_argument('-qt1', '--qry_attn_test1', default="by1test-qry-attn-bal-allpos.tsv")
     parser.add_argument('-aql1', '--art_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
     parser.add_argument('-tql1', '--top_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
     parser.add_argument('-hql1', '--hier_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
@@ -287,11 +287,11 @@ def main():
     parser.add_argument('-tq2', '--test_qids2', default="by1train-context-title-qids.npy") #change
     parser.add_argument('-tqv2', '--test_qvecs2', default="by1train-context-title-qvecs.npy") #change
 
-    parser.add_argument('-cp', '--cats_path', default="/home/sk1105/sumanta/CATS/saved_models/cats_title_b32_l0.00001_i3.model") #change
+    parser.add_argument('-cp', '--cats_path', default="/home/sk1105/sumanta/cats_deploy/model/saved_models/cats_title_b32_l0.00001_i4.model") #change
     parser.add_argument('-seq', '--max_seq', type=int, default=10)
     parser.add_argument('-pn', '--param_n', type=int, default=32)
     parser.add_argument('-mt', '--model_type', default="fcats")
-    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/CATS/saved_models/sentcats_maxlen_10_title_b32_l0.0001_i6.model") #change
+    parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/cats_deploy/model/saved_models/sentcats_title_b32_l0.0001_i4.model") #change
 
     '''
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")

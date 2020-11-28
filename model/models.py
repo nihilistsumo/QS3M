@@ -13,6 +13,7 @@ from sklearn.metrics import roc_auc_score
 import argparse
 import math
 import time
+import os.path
 
 class SimilarityClusteringModel(nn.Module):
     def __init__(self, emb_size, m):
@@ -185,9 +186,9 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
 
     if save:
+        if not os.path.isdir('saved_models'):
+            os.makedirs('saved_models')
         torch.save(m.state_dict(), 'saved_models/'+time.strftime('%b-%d-%Y_%H%M', time.localtime())+'.model')
-
-
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
@@ -206,7 +207,7 @@ def main():
     parser.add_argument('-lr', '--lrate', type=float, default=0.00001)
     parser.add_argument('-bt', '--batch', type=int, default=32)
     parser.add_argument('-ep', '--epochs', type=int, default=3)
-    parser.add_argument('-ct', '--cats_type', default="abl")
+    parser.add_argument('-ct', '--cats_type', default="cats")
     parser.add_argument('--cache', action='store_true')
     parser.add_argument('--save', action='store_true')
 

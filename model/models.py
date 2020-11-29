@@ -113,6 +113,9 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         X_train = X_train[val_sample_size:]
         y_train = y_train[val_sample_size:]
 
+        if not os.path.isdir('cache'):
+            os.makedirs('cache')
+
         np.save('cache/X_train.npy', X_train)
         np.save('cache/y_train.npy', y_train)
         np.save('cache/X_val.npy', X_val)

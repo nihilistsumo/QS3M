@@ -2,7 +2,7 @@ import torch
 torch.manual_seed(42)
 import torch.nn as nn
 
-class CATS(nn.Module):
+class CATS(nn.Module): # CATS
     def __init__(self, emb_size):
         super(CATS, self).__init__()
         self.emb_size = emb_size
@@ -283,7 +283,7 @@ class Sent_FixedCATS_Attention(nn.Module):
         return y_pred
 
 
-class CATS_Scaled(nn.Module):
+class CATS_Scaled(nn.Module): # CAVS
     def __init__(self, emb_size):
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size

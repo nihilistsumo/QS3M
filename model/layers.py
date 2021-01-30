@@ -14,7 +14,7 @@ class CATS(nn.Module): # CATS
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise CATS scores of shape (mC2 X 1) 
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]

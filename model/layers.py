@@ -14,7 +14,7 @@ class CATS(nn.Module): # CATS
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1) 
+        :return s: Pairwise CATS scores of shape (mC2 X 1)
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
@@ -288,12 +288,12 @@ class CATS_Scaled(nn.Module): # CAVS
         super(CATS_Scaled, self).__init__()
         self.emb_size = emb_size
         self.n = 32
-        self.LL1 = nn.Linear(emb_size, self.n)
+        self.LL1 = nn.Linear(self.emb_size, self.emb_size)
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:
             device = torch.device('cpu')
-        self.A = nn.Parameter(torch.tensor(torch.randn(self.n, emb_size), requires_grad=True).to(device))
+        #self.A = nn.Parameter(torch.tensor(torch.randn(self.n, emb_size), requires_grad=True).to(device))
         self.cos = nn.CosineSimilarity()
 
     def forward(self, X):
@@ -305,8 +305,7 @@ class CATS_Scaled(nn.Module): # CAVS
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
         self.Xp2 = X[:, 2 * self.emb_size:]
-        self.Xlq = torch.relu(self.LL1(self.Xq))
-        self.scale = torch.mm(self.Xlq, self.A)
+        self.scale = torch.tanh(self.LL1(self.Xq))
         self.zp1 = torch.mul(self.Xp1, self.scale)
         self.zp2 = torch.mul(self.Xp2, self.scale)
 

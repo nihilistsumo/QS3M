@@ -1,6 +1,7 @@
 import torch
 torch.manual_seed(42)
 import torch.nn as nn
+import torch.nn.functional as F
 
 class CATS(nn.Module): # CATS
     def __init__(self, emb_size):
@@ -19,6 +20,7 @@ class CATS(nn.Module): # CATS
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
         self.Xp2 = X[:, 2 * self.emb_size:]
+
         self.z1 = torch.abs(self.Xp1 - self.Xq)
         self.z2 = torch.abs(self.Xp2 - self.Xq)
         self.zdiff = torch.abs(self.Xp1 - self.Xp2)
@@ -30,6 +32,7 @@ class CATS(nn.Module): # CATS
         self.zdqp2 = torch.abs(self.zp2 - self.zql)
         self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
         o = torch.relu(self.LL3(self.z))
+
         o = o.reshape(-1)
         return o
 
@@ -289,6 +292,7 @@ class CATS_Scaled(nn.Module): # CAVS
         self.emb_size = emb_size
         self.n = 32
         self.LL1 = nn.Linear(self.emb_size, self.emb_size)
+        #self.LL2 = nn.Linear(self.emb_size, self.emb_size)
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:

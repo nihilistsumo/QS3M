@@ -60,8 +60,8 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
     fold = 1
     for train_index, test_index in skf.split(xdata, ydata):
         print('Fold %d' % fold)
-        X_train, X_test = xdata[train_index], xdata[test_index]
-        y_train, y_test = ydata[train_index], ydata[test_index]
+        X_train, X_test = xdata[train_index], xdata[test_index].to(device)
+        y_train, y_test = ydata[train_index], ydata[test_index].to(device)
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])

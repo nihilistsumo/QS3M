@@ -17,7 +17,8 @@ from numpy.random import seed
 seed(42)
 
 
-def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, select_queries, lrate, epochs, batch, save):
+def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, select_queries, lrate, epochs, batch,
+                     eval_num, save):
     bert_embed_model = models.Transformer(sbert_model_name, max_seq_length=512)
     pooling_model = models.Pooling(bert_embed_model.get_word_embedding_dimension(), pooling_mode_cls_token=False,
                                    pooling_mode_max_tokens=False, pooling_mode_mean_tokens=True)
@@ -60,8 +61,8 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
     fold = 1
     for train_index, test_index in skf.split(xdata, ydata):
         print('Fold %d' % fold)
-        X_train, X_test = xdata[train_index].to(device), xdata[test_index].to(device)
-        y_train, y_test = ydata[train_index].to(device), ydata[test_index].to(device)
+        X_train, X_test = xdata[train_index], xdata[test_index]
+        y_train, y_test = ydata[train_index], ydata[test_index]
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
@@ -83,21 +84,25 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
             for b in range(math.ceil(train_samples // batch)):
                 m.train()
                 opt.zero_grad()
-                curr_x = X_train[b * batch:b * batch + batch]
+                curr_x = X_train[b * batch:b * batch + batch].to(device)
                 ypred = m(curr_x)
-                y_train_curr = y_train[b * batch:b * batch + batch]
+                y_train_curr = y_train[b * batch:b * batch + batch].to(device)
                 loss = mseloss(ypred, y_train_curr)
                 auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
                 loss.backward()
                 opt.step()
-                if b % 10 == 0:
+                if b % eval_num == 0:
                     m.eval()
+                    m.to('cpu')
+                    m.cats.to('cpu')
                     ypred_test = m(X_test)
                     val_loss = mseloss(ypred_test, y_test)
                     val_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
                     print(
                         '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
                         (loss.item(), auc, val_loss.item(), val_auc), end='')
+                    m.to(device)
+                    m.cats.to(device)
         m.eval()
         m.cpu()
         ypred_test = m(X_test)
@@ -119,6 +124,7 @@ def main():
     parser.add_argument('-lr', '--lrate', type=float, default=0.00001)
     parser.add_argument('-ep', '--epochs', type=int, default=3)
     parser.add_argument('-bt', '--batch', type=int, default=32)
+    parser.add_argument('-en', '--eval_num', type=int, default=100)
     parser.add_argument('--save', action='store_true')
     args = parser.parse_args()
 
@@ -135,7 +141,7 @@ def main():
              'q-fin': 'Finance',
              'stat': 'Statistics'}
     arxiv_experiment(args.arxiv_vecs, args.arxiv_qlabels, query_map, 'bert-base-uncased', selected_queries, args.lrate,
-                     args.epochs, args.batch, args.save)
+                     args.epochs, args.batch, args.eval_num, args.save)
 
 if __name__ == '__main__':
     main()

@@ -68,8 +68,8 @@ class CATSSimilarityModel_arxiv(nn.Module):
         return self.pair_scores
 
 
-def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, select_queries, lrate, epochs, batch,
-                     eval_num, save):
+def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, lrate, epochs, batch,
+                     eval_num, save, arxiv_vecs=None, arxiv_docs=None):
     bert_embed_model = models.Transformer(sbert_model_name, max_seq_length=512)
     pooling_model = models.Pooling(bert_embed_model.get_word_embedding_dimension(), pooling_mode_cls_token=False,
                                    pooling_mode_max_tokens=False, pooling_mode_mean_tokens=True)
@@ -82,7 +82,19 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
     query_vecs = {}
     for i in range(len(queries)):
         query_vecs[queries[i]] = vecs[i]
-    abs_vecs = np.load(arxiv_vecs, allow_pickle=True)[()]['data']
+    if arxiv_vecs is not None:
+        abs_vecs = np.load(arxiv_vecs, allow_pickle=True)[()]['data']
+    else:
+        abstracts = np.load(arxiv_docs, allow_pickle=True)[()]['data']
+        abstract_ids, abstract_texts = [], []
+        for a in abstracts.keys():
+            abstract_ids.append(a)
+            abstract_texts.append(abstracts[a])
+        abs_vecs = {}
+        print('Going to embed paras')
+        embeds = model.encode(abstract_texts, show_progress_bar=True)
+        for i in range(len(abstract_ids)):
+            abs_vecs[abstract_ids[i]] = embeds[i]
     abs_qlabels = np.load(arxiv_qlabel, allow_pickle=True)[()]['data']
     bal_pairs, labels = [], []
     for q in select_queries:
@@ -185,6 +197,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
 
 def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
+    parser.add_argument('-ad', '--arxiv_docs', default=None)
     parser.add_argument('-av', '--arxiv_vecs', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_vecs_for_cats.npy')
     parser.add_argument('-ql', '--arxiv_qlabels', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_qlabels_for_cats.npy')
     parser.add_argument('-mn', '--model_name', default='bert-base-uncased')
@@ -207,8 +220,8 @@ def main():
              'q-bio': 'Biology',
              'q-fin': 'Finance',
              'stat': 'Statistics'}
-    arxiv_experiment(args.arxiv_vecs, args.arxiv_qlabels, query_map, args.model_name, selected_queries, args.lrate,
-                     args.epochs, args.batch, args.eval_num, args.save)
+    arxiv_experiment(args.arxiv_qlabels, query_map, args.model_name, selected_queries, args.lrate,
+                     args.epochs, args.batch, args.eval_num, args.save, args.arxiv_vecs, args.arxiv_docs)
 
 if __name__ == '__main__':
     main()

@@ -114,7 +114,7 @@ def main():
     parser = argparse.ArgumentParser(description='Run CATS model')
     parser.add_argument('-av', '--arxiv_vecs', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_vecs_for_cats.npy')
     parser.add_argument('-ql', '--arxiv_qlabels', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_qlabels_for_cats.npy')
-    parser.add_argument('-lr', type=float, default=0.00001)
+    parser.add_argument('-lr', '--lrate', type=float, default=0.00001)
     parser.add_argument('-ep', '--epochs', type=int, default=3)
     parser.add_argument('-bt', '--batch', type=int, default=32)
     parser.add_argument('--save', action='store_true')

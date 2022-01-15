@@ -74,6 +74,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
 
         train_samples = X_train.shape[0]
         m = CATSSimilarityModel(768, 'cats').to(device)
+        m.cats.to(device)
         opt = optim.Adam(m.parameters(), lr=lrate)
         mseloss = nn.MSELoss()
         print('Starting training...')

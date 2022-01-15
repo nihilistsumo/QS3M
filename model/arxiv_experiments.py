@@ -74,6 +74,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
         print('Test data Baseline euclidean auc: %.5f', euclid_auc)
 
         train_samples = X_train.shape[0]
+        test_samples = X_test.shape[0]
         m = CATSSimilarityModel(768, 'cats').to(device)
         m.cats.to(device)
         opt = optim.Adam(m.parameters(), lr=lrate)
@@ -95,17 +96,34 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
                 opt.step()
                 if b % eval_num == 0:
                     m.eval()
-                    ypred_test = m(X_test)
-                    test_loss = mseloss(ypred_test, y_test)
-                    val_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+                    test_loss = 0
+                    test_auc = 0
+                    n = 0
+                    for bt in range(math.ceil(test_samples // batch)):
+                        curr_x_test = X_test[bt * batch:bt * batch + batch].to(device)
+                        y_test_curr = y_test[bt * batch:bt * batch + batch].to(device)
+                        ypred_test = m(curr_x_test)
+                        test_loss += mseloss(ypred_test, y_test_curr).item()
+                        test_auc += roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+                        n += 1
                     print(
                         '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
-                        (loss.item(), auc, test_loss.item(), val_auc), end='')
+                        (loss.item(), auc, test_loss/n, test_auc/n), end='')
         m.eval()
-        ypred_test = m(X_test)
-        test_loss = mseloss(ypred_test, y_test)
-        test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
-        print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss.item(), test_auc))
+        test_loss = 0
+        test_auc = 0
+        n = 0
+        for bt in range(math.ceil(test_samples // batch)):
+            curr_x_test = X_test[bt * batch:bt * batch + batch].to(device)
+            y_test_curr = y_test[bt * batch:bt * batch + batch].to(device)
+            ypred_test = m(curr_x_test)
+            test_loss += mseloss(ypred_test, y_test_curr).item()
+            test_auc += roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+            n += 1
+        print(
+            '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
+            (loss.item(), auc, test_loss / n, test_auc / n), end='')
+        print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss/n, test_auc/n))
 
         if save:
             if not os.path.isdir('saved_models'):

@@ -60,16 +60,16 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
     fold = 1
     for train_index, test_index in skf.split(xdata, ydata):
         print('Fold %d' % fold)
-        X_train, X_test = xdata[train_index], xdata[test_index].to(device)
-        y_train, y_test = ydata[train_index], ydata[test_index].to(device)
+        X_train, X_test = xdata[train_index].to(device), xdata[test_index].to(device)
+        y_train, y_test = ydata[train_index].to(device), ydata[test_index].to(device)
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
-        cos_auc = roc_auc_score(y_test, y_cos)
+        cos_auc = roc_auc_score(y_test.detach().cpu().numpy(), y_cos.detach().cpu().numpy())
         print('Test data Baseline cosine auc: %.5f', cos_auc)
-        y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).numpy()
+        y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).detach().cpu().numpy()
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
-        euclid_auc = roc_auc_score(y_test, y_euclid)
+        euclid_auc = roc_auc_score(y_test.detach().cpu().numpy(), y_euclid)
         print('Test data Baseline euclidean auc: %.5f', euclid_auc)
 
         train_samples = X_train.shape[0]
@@ -83,9 +83,9 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
             for b in range(math.ceil(train_samples // batch)):
                 m.train()
                 opt.zero_grad()
-                curr_x = X_train[b * batch:b * batch + batch].to(device)
+                curr_x = X_train[b * batch:b * batch + batch]
                 ypred = m(curr_x)
-                y_train_curr = y_train[b * batch:b * batch + batch].to(device)
+                y_train_curr = y_train[b * batch:b * batch + batch]
                 loss = mseloss(ypred, y_train_curr)
                 auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
                 loss.backward()

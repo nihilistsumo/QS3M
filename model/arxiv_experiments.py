@@ -104,7 +104,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
                         y_test_curr = y_test[bt * batch:bt * batch + batch].to(device)
                         ypred_test = m(curr_x_test)
                         test_loss += mseloss(ypred_test, y_test_curr).item()
-                        test_auc += roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+                        test_auc += roc_auc_score(y_test_curr.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
                         n += 1
                     print(
                         '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
@@ -118,7 +118,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
             y_test_curr = y_test[bt * batch:bt * batch + batch].to(device)
             ypred_test = m(curr_x_test)
             test_loss += mseloss(ypred_test, y_test_curr).item()
-            test_auc += roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
+            test_auc += roc_auc_score(y_test_curr.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
             n += 1
         print(
             '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %

@@ -110,7 +110,8 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
                         neg_k = random.sample(list(dat.keys()), 1)[0]
                     bal_pairs.append((q, curr_docs[i], random.sample(dat[k], 1)[0]))
                     labels.append(0)
-    xdata = torch.zeros((len(bal_pairs), 3*bert_embed_model.get_word_embedding_dimension()))
+    emb_dim = bert_embed_model.get_word_embedding_dimension()
+    xdata = torch.zeros((len(bal_pairs), 3*emb_dim))
     ydata = torch.tensor(labels, dtype=torch.float32)
     for i in range(len(bal_pairs)):
         xdata[i] = torch.tensor(np.hstack((query_vecs[bal_pairs[i][0]], abs_vecs[bal_pairs[i][1]], abs_vecs[bal_pairs[i][2]])))
@@ -128,17 +129,17 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
         y_train, y_test = ydata[train_index], ydata[test_index]
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
-        y_cos = cos(X_test[:, 768:768 * 2], X_test[:, 768 * 2:])
+        y_cos = cos(X_test[:, emb_dim:emb_dim * 2], X_test[:, emb_dim * 2:])
         cos_auc = roc_auc_score(y_test.detach().cpu().numpy(), y_cos.detach().cpu().numpy())
         print('Test data Baseline cosine auc: %.5f', cos_auc)
-        y_euclid = torch.sqrt(torch.sum((X_test[:, 768:768 * 2] - X_test[:, 768 * 2:]) ** 2, 1)).detach().cpu().numpy()
+        y_euclid = torch.sqrt(torch.sum((X_test[:, emb_dim:emb_dim * 2] - X_test[:, emb_dim * 2:]) ** 2, 1)).detach().cpu().numpy()
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
         euclid_auc = roc_auc_score(y_test.detach().cpu().numpy(), y_euclid)
         print('Test data Baseline euclidean auc: %.5f', euclid_auc)
 
         train_samples = X_train.shape[0]
         test_samples = X_test.shape[0]
-        m = CATSSimilarityModel_arxiv(768).to(device)
+        m = CATSSimilarityModel_arxiv(emb_dim).to(device)
         m.cats.to(device)
         opt = optim.Adam(m.parameters(), lr=lrate)
         mseloss = nn.MSELoss()

@@ -51,7 +51,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
     ydata = torch.tensor(labels, dtype=torch.float32)
     for i in range(len(bal_pairs)):
         xdata[i] = torch.tensor(np.hstack((query_vecs[bal_pairs[i][0]], abs_vecs[bal_pairs[i][1]], abs_vecs[bal_pairs[i][2]])))
-    skf = StratifiedKFold(n_splits=2, shuffle=True)
+    skf = StratifiedKFold(n_splits=10, shuffle=True)
     if torch.cuda.is_available():
         device = torch.device('cuda:0')
         print('CUDA available, using CUDA')
@@ -78,6 +78,8 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
         m.cats.to(device)
         opt = optim.Adam(m.parameters(), lr=lrate)
         mseloss = nn.MSELoss()
+        X_test = X_test.to(device)
+        y_test = y_test.to(device)
         print('Starting training...')
         for i in range(epochs):
             print('\nEpoch ' + str(i + 1))
@@ -93,18 +95,13 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
                 opt.step()
                 if b % eval_num == 0:
                     m.eval()
-                    m.to('cpu')
-                    m.cats.to('cpu')
                     ypred_test = m(X_test)
-                    val_loss = mseloss(ypred_test, y_test)
+                    test_loss = mseloss(ypred_test, y_test)
                     val_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
                     print(
                         '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
-                        (loss.item(), auc, val_loss.item(), val_auc), end='')
-                    m.to(device)
-                    m.cats.to(device)
+                        (loss.item(), auc, test_loss.item(), val_auc), end='')
         m.eval()
-        m.cpu()
         ypred_test = m(X_test)
         test_loss = mseloss(ypred_test, y_test)
         test_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())

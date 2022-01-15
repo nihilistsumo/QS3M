@@ -10,11 +10,62 @@ import time
 import math
 import os
 import argparse
-from model.models import CATSSimilarityModel
 random.seed(42)
 torch.manual_seed(42)
 from numpy.random import seed
 seed(42)
+
+
+class CATS_arxiv(nn.Module): # CATS
+    def __init__(self, emb_size):
+        super(CATS_arxiv, self).__init__()
+        self.emb_size = emb_size
+        self.LL1 = nn.Linear(emb_size, 5 * emb_size)
+        self.LL2 = nn.Linear(5 * emb_size, emb_size)
+        self.LL3 = nn.Linear(5 * emb_size, 1)
+
+    def forward(self, X):
+        '''
+
+        :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
+        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        '''
+        self.Xq = X[:, :self.emb_size]
+        self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
+        self.Xp2 = X[:, 2 * self.emb_size:]
+        self.z1 = torch.abs(self.Xp1 - self.Xq)
+        self.z2 = torch.abs(self.Xp2 - self.Xq)
+        self.zdiff = torch.abs(self.Xp1 - self.Xp2)
+        self.zp1 = torch.relu(self.LL2(torch.relu(self.LL1(self.Xp1))))
+        self.zp2 = torch.relu(self.LL2(torch.relu(self.LL1(self.Xp2))))
+        self.zql = torch.relu(self.LL2(torch.relu(self.LL1(self.Xq))))
+        self.zd = torch.abs(self.zp1 - self.zp2)
+        self.zdqp1 = torch.abs(self.zp1 - self.zql)
+        self.zdqp2 = torch.abs(self.zp2 - self.zql)
+        self.z = torch.cat((self.zp1, self.zp2, self.zd, self.zdqp1, self.zdqp2), dim=1)
+        o = torch.relu(self.LL3(self.z))
+        o = o.reshape(-1)
+        return o
+
+    def num_flat_features(self, X):
+        size = X.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+    def predict(self, X_test):
+        y_pred = self.forward(X_test)
+        return y_pred
+
+class CATSSimilarityModel_arxiv(nn.Module):
+    def __init__(self, emb_size):
+        super(CATSSimilarityModel_arxiv, self).__init__()
+        self.cats = CATS_arxiv(emb_size)
+
+    def forward(self, X):
+        self.pair_scores = self.cats(X)
+        return self.pair_scores
 
 
 def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, select_queries, lrate, epochs, batch,
@@ -75,7 +126,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
 
         train_samples = X_train.shape[0]
         test_samples = X_test.shape[0]
-        m = CATSSimilarityModel(768, 'cats').to(device)
+        m = CATSSimilarityModel_arxiv(768).to(device)
         m.cats.to(device)
         opt = optim.Adam(m.parameters(), lr=lrate)
         mseloss = nn.MSELoss()

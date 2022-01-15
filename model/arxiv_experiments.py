@@ -83,7 +83,8 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
             for b in range(math.ceil(train_samples // batch)):
                 m.train()
                 opt.zero_grad()
-                ypred = m(X_train[b * batch:b * batch + batch].to(device))
+                curr_x = X_train[b * batch:b * batch + batch].to(device)
+                ypred = m(curr_x)
                 y_train_curr = y_train[b * batch:b * batch + batch].to(device)
                 loss = mseloss(ypred, y_train_curr)
                 auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())

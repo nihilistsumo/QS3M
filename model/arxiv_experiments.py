@@ -26,7 +26,7 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
     for q in query_map.keys():
         queries.append(q)
         texts.append(query_map[q])
-    vecs = model.encode(texts, convert_to_numpy=False)
+    vecs = model.encode(texts)
     query_vecs = {}
     for i in range(len(queries)):
         query_vecs[queries[i]] = vecs[i]
@@ -46,15 +46,17 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
                         neg_k = random.sample(list(dat.keys()), 1)[0]
                     bal_pairs.append((q, curr_docs[i], random.sample(dat[k], 1)[0]))
                     labels.append(0)
-    xdata = torch.zeros((len(bal_pairs), bert_embed_model.get_word_embedding_dimension()))
+    xdata = torch.zeros((len(bal_pairs), 3*bert_embed_model.get_word_embedding_dimension()))
     ydata = torch.tensor(labels, dtype=torch.float32)
     for i in range(len(bal_pairs)):
-        xdata[i] = torch.hstack((query_vecs[bal_pairs[i][0]], abs_vecs[bal_pairs[i][1]], abs_vecs[bal_pairs[i][2]]))
+        xdata[i] = torch.tensor(np.hstack((query_vecs[bal_pairs[i][0]], abs_vecs[bal_pairs[i][1]], abs_vecs[bal_pairs[i][2]])))
     skf = StratifiedKFold(n_splits=2, shuffle=True)
     if torch.cuda.is_available():
         device = torch.device('cuda:0')
+        print('CUDA available, using CUDA')
     else:
         device = torch.device('cpu')
+        print('CUDA not available, using cpu')
     fold = 1
     for train_index, test_index in skf.split(xdata, ydata):
         print('Fold %d' % fold)
@@ -86,13 +88,13 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
                 auc = roc_auc_score(y_train_curr.detach().cpu().numpy(), ypred.detach().cpu().numpy())
                 loss.backward()
                 opt.step()
-                if b % 100 == 0:
+                if b % 10 == 0:
                     m.eval()
                     ypred_test = m(X_test)
                     val_loss = mseloss(ypred_test, y_test)
                     val_auc = roc_auc_score(y_test.detach().cpu().numpy(), ypred_test.detach().cpu().numpy())
                     print(
-                        '\rTrain loss: %.5f, Train auc: %.5f, Val loss: %.5f, Val auc: %.5f' %
+                        '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
                         (loss.item(), auc, val_loss.item(), val_auc), end='')
         m.eval()
         m.cpu()
@@ -108,8 +110,18 @@ def arxiv_experiment(arxiv_vecs, arxiv_qlabel, query_map, sbert_model_name, sele
         fold += 1
 
 
-selected_queries = ['eess', 'astro-ph']
-query_map = {'cs': 'Computer Science',
+def main():
+    parser = argparse.ArgumentParser(description='Run CATS model')
+    parser.add_argument('-av', '--arxiv_vecs', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_vecs_for_cats.npy')
+    parser.add_argument('-ql', '--arxiv_qlabels', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_qlabels_for_cats.npy')
+    parser.add_argument('-lr', type=float, default=0.00001)
+    parser.add_argument('-ep', '--epochs', type=int, default=3)
+    parser.add_argument('-bt', '--batch', type=int, default=32)
+    parser.add_argument('--save', action='store_true')
+    args = parser.parse_args()
+
+    selected_queries = ['eess', 'astro-ph', 'cond-mat', 'nlin', 'q-bio', 'q-fin', 'stat']
+    query_map = {'cs': 'Computer Science',
              'econ': 'Economics',
              'eess': 'Electrical Engineering and Systems',
              'math': 'Mathematics',
@@ -120,12 +132,8 @@ query_map = {'cs': 'Computer Science',
              'q-bio': 'Biology',
              'q-fin': 'Finance',
              'stat': 'Statistics'}
-arxiv_experiment('/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_vecs_for_cats.npy',
-                 '/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_qlabels_for_cats.npy',
-                 query_map,
-                 'bert-base-uncased',
-                 selected_queries,
-                 0.00001,
-                 3,
-                 32,
-                 False)
+    arxiv_experiment(args.arxiv_vecs, args.arxiv_qlabels, query_map, 'bert-base-uncased', selected_queries, args.lrate,
+                     args.epochs, args.batch, args.save)
+
+if __name__ == '__main__':
+    main()

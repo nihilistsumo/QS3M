@@ -10,6 +10,7 @@ import time
 import math
 import os
 import argparse
+from tqdm import tqdm
 random.seed(42)
 torch.manual_seed(42)
 from numpy.random import seed
@@ -151,7 +152,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
         print('Starting training...')
         for i in range(epochs):
             print('\nEpoch ' + str(i + 1))
-            for b in range(math.ceil(train_samples // batch)):
+            for b in tqdm(range(math.ceil(train_samples // batch))):
                 m.train()
                 opt.zero_grad()
                 curr_x = X_train[b * batch:b * batch + batch].to(device)

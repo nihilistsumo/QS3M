@@ -190,7 +190,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
         euclid_auc = roc_auc_score(y_test.detach().cpu().numpy(), y_euclid)
         print('Test data Baseline euclidean auc: %.5f', euclid_auc)
         print('Test data clustering eval')
-        for q in abs_qlabels_test.keys():
+        for q in select_queries:
             dat = abs_qlabels_test[q]
             docs, l = [], []
             for k in dat.keys():
@@ -205,6 +205,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
             cl_labels = cl.fit_predict(score_matrix)
             base_rand = adjusted_rand_score(l, cl_labels)
             print(q+' ARI: %.5f' % base_rand)
+        print('\n\n')
 
         train_samples = X_train.shape[0]
         test_samples = X_test.shape[0]
@@ -258,7 +259,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
             (loss.item(), auc, test_loss / n, test_auc / n), end='')
         print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss/n, test_auc/n))
         print('Test cluster eval')
-        for q in abs_qlabels_test.keys():
+        for q in select_queries:
             dat = abs_qlabels_test[q]
             docs, l = [], []
             for k in dat.keys():
@@ -282,6 +283,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
             cl_labels = cl.fit_predict(score_matrix)
             base_rand = adjusted_rand_score(l, cl_labels)
             print(q+' ARI: %.5f' % base_rand)
+        print('\n\n')
 
 
 

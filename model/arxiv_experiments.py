@@ -111,7 +111,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
                     neg_k = random.sample(list(dat.keys()), 1)[0]
                     while neg_k == k:
                         neg_k = random.sample(list(dat.keys()), 1)[0]
-                    bal_pairs.append((q, curr_docs[i], random.sample(dat[k], 1)[0]))
+                    bal_pairs.append((q, curr_docs[i], random.sample(dat[neg_k], 1)[0]))
                     labels.append(0)
     emb_dim = model.get_sentence_embedding_dimension()
     xdata = torch.zeros((len(bal_pairs), 3*emb_dim))

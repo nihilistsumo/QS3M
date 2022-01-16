@@ -101,37 +101,84 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
         for i in range(len(abstract_ids)):
             abs_vecs[abstract_ids[i]] = embeds[i]
     abs_qlabels = np.load(arxiv_qlabel, allow_pickle=True)[()]['data']
-    bal_pairs, labels = [], []
-    for q in select_queries:
-        dat = abs_qlabels[q]
-        for k in dat.keys():
-            curr_docs = dat[k]
-            for i in range(len(curr_docs)-1):
-                for j in range(1, len(curr_docs)):
-                    bal_pairs.append((q, curr_docs[i], curr_docs[j]))
-                    labels.append(1)
-                    neg_k = random.sample(list(dat.keys()), 1)[0]
-                    while neg_k == k:
+    qdocs, labels = [], []
+    for q in abs_qlabels.keys():
+        for k in abs_qlabels[q].keys():
+            for d in abs_qlabels[q][k]:
+                qdocs.append({'a': d, 'q': q, 'cat': k})
+                labels.append(q+':'+k)
+    skf = StratifiedKFold(n_splits=2)
+    for train_index, test_index in skf.split(qdocs, labels):
+        train_qdocs = [qdocs[i] for i in train_index]
+        test_qdocs = [qdocs[i] for i in test_index]
+        abs_qlabels_train, abs_qlabels_test = {}, {}
+        for d in train_qdocs:
+            q, k, d = d['q'], d['cat'], d['a']
+            if q in abs_qlabels_train.keys():
+                if k in abs_qlabels_train[q].keys():
+                    abs_qlabels_train[q][k].append(d)
+                else:
+                    abs_qlabels_train[q][k] = [d]
+            else:
+                abs_qlabels_train[q] = {k: [d]}
+        for d in test_qdocs:
+            q, k, d = d['q'], d['cat'], d['a']
+            if q in abs_qlabels_test.keys():
+                if k in abs_qlabels_test[q].keys():
+                    abs_qlabels_test[q][k].append(d)
+                else:
+                    abs_qlabels_test[q][k] = [d]
+            else:
+                abs_qlabels_test[q] = {k: [d]}
+
+
+        bal_pairs, labels = [], []
+        for q in select_queries:
+            dat = abs_qlabels_train[q]
+            for k in dat.keys():
+                curr_docs = dat[k]
+                for i in range(len(curr_docs)-1):
+                    for j in range(1, len(curr_docs)):
+                        bal_pairs.append((q, curr_docs[i], curr_docs[j]))
+                        labels.append(1)
                         neg_k = random.sample(list(dat.keys()), 1)[0]
-                    bal_pairs.append((q, curr_docs[i], random.sample(dat[neg_k], 1)[0]))
-                    labels.append(0)
-    emb_dim = model.get_sentence_embedding_dimension()
-    xdata = torch.zeros((len(bal_pairs), 3*emb_dim))
-    ydata = torch.tensor(labels, dtype=torch.float32)
-    for i in range(len(bal_pairs)):
-        xdata[i] = torch.tensor(np.hstack((query_vecs[bal_pairs[i][0]], abs_vecs[bal_pairs[i][1]], abs_vecs[bal_pairs[i][2]])))
-    skf = StratifiedKFold(n_splits=10, shuffle=True)
-    if torch.cuda.is_available():
-        device = torch.device('cuda:0')
-        print('CUDA available, using CUDA')
-    else:
-        device = torch.device('cpu')
-        print('CUDA not available, using cpu')
-    fold = 1
-    for train_index, test_index in skf.split(xdata, ydata):
-        print('Fold %d' % fold)
-        X_train, X_test = xdata[train_index], xdata[test_index]
-        y_train, y_test = ydata[train_index], ydata[test_index]
+                        while neg_k == k:
+                            neg_k = random.sample(list(dat.keys()), 1)[0]
+                        bal_pairs.append((q, curr_docs[i], random.sample(dat[neg_k], 1)[0]))
+                        labels.append(0)
+        emb_dim = model.get_sentence_embedding_dimension()
+        X_train = torch.zeros((len(bal_pairs), 3*emb_dim))
+        y_train = torch.tensor(labels, dtype=torch.float32)
+        for i in range(len(bal_pairs)):
+            X_train[i] = torch.tensor(np.hstack((query_vecs[bal_pairs[i][0]], abs_vecs[bal_pairs[i][1]], abs_vecs[bal_pairs[i][2]])))
+
+        bal_pairs_test, labels_test = [], []
+        for q in select_queries:
+            dat = abs_qlabels_test[q]
+            for k in dat.keys():
+                curr_docs = dat[k]
+                for i in range(len(curr_docs) - 1):
+                    for j in range(1, len(curr_docs)):
+                        bal_pairs_test.append((q, curr_docs[i], curr_docs[j]))
+                        labels_test.append(1)
+                        neg_k = random.sample(list(dat.keys()), 1)[0]
+                        while neg_k == k:
+                            neg_k = random.sample(list(dat.keys()), 1)[0]
+                        bal_pairs_test.append((q, curr_docs[i], random.sample(dat[neg_k], 1)[0]))
+                        labels_test.append(0)
+        X_test = torch.zeros((len(bal_pairs_test), 3 * emb_dim))
+        y_test = torch.tensor(labels_test, dtype=torch.float32)
+        for i in range(len(bal_pairs)):
+            X_test[i] = torch.tensor(
+                np.hstack((query_vecs[bal_pairs_test[i][0]], abs_vecs[bal_pairs_test[i][1]], abs_vecs[bal_pairs_test[i][2]])))
+
+        if torch.cuda.is_available():
+            device = torch.device('cuda:0')
+            print('CUDA available, using CUDA')
+        else:
+            device = torch.device('cpu')
+            print('CUDA not available, using cpu')
+        fold = 1
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         y_cos = cos(X_test[:, emb_dim:emb_dim * 2], X_test[:, emb_dim * 2:])

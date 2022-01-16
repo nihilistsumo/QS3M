@@ -4,7 +4,9 @@ import torch.nn as nn
 import torch.optim as optim
 from sentence_transformers import SentenceTransformer, models
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, adjusted_rand_score
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.cluster import AgglomerativeClustering
 import random
 import time
 import math
@@ -187,6 +189,22 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
         y_euclid = 1 - (y_euclid - np.min(y_euclid)) / (np.max(y_euclid) - np.min(y_euclid))
         euclid_auc = roc_auc_score(y_test.detach().cpu().numpy(), y_euclid)
         print('Test data Baseline euclidean auc: %.5f', euclid_auc)
+        print('Test data clustering eval')
+        for q in abs_qlabels_test.keys():
+            dat = abs_qlabels_test[q]
+            docs, l = [], []
+            for k in dat.keys():
+                docs += dat[k]
+                l += [k] * len(dat[k])
+            vecs = np.zeros((len(docs), emb_dim))
+            for i in range(len(docs)):
+                vecs[i] = abs_vecs[docs[i]]
+            k = len(set(l))
+            score_matrix = cosine_distances(vecs, vecs)
+            cl = AgglomerativeClustering(n_clusters=k, affinity='precomputed', linkage='average')
+            cl_labels = cl.fit_predict(score_matrix)
+            base_rand = adjusted_rand_score(l, cl_labels)
+            print(q+' ARI: %.5f' % base_rand)
 
         train_samples = X_train.shape[0]
         test_samples = X_test.shape[0]
@@ -239,6 +257,33 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
             '\rTrain loss: %.5f, Train auc: %.5f, Test loss: %.5f, Test auc: %.5f' %
             (loss.item(), auc, test_loss / n, test_auc / n), end='')
         print('\n\nTest loss: %.5f, Test auc: %.5f' % (test_loss/n, test_auc/n))
+        print('Test cluster eval')
+        for q in abs_qlabels_test.keys():
+            dat = abs_qlabels_test[q]
+            docs, l = [], []
+            for k in dat.keys():
+                docs += dat[k]
+                l += [k] * len(dat[k])
+            vecs = np.zeros((len(docs), emb_dim))
+            for i in range(len(docs)):
+                vecs[i] = abs_vecs[docs[i]]
+            k = len(set(l))
+            score_matrix = np.zeros((len(docs), len(docs)))
+            for i in range(len(docs)):
+                rdata = torch.zeros((len(docs), 3*emb_dim))
+                for j in range(len(docs)):
+                    rdata[j] = np.hstack((query_vecs[q], abs_vecs[docs[i]], abs_vecs[docs[j]]))
+                rdata = rdata.to(device)
+                rdata_scores = m(rdata).detach().cpu().numpy()
+                score_matrix[i] = rdata_scores
+            score_matrix = (score_matrix - np.min(score_matrix))/(np.max(score_matrix) - np.min(score_matrix))
+            score_matrix = 1 - score_matrix
+            cl = AgglomerativeClustering(n_clusters=k, affinity='precomputed', linkage='average')
+            cl_labels = cl.fit_predict(score_matrix)
+            base_rand = adjusted_rand_score(l, cl_labels)
+            print(q+' ARI: %.5f' % base_rand)
+
+
 
         if save:
             if not os.path.isdir('saved_models'):

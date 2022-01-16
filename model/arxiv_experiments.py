@@ -168,9 +168,8 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
                         labels_test.append(0)
         X_test = torch.zeros((len(bal_pairs_test), 3 * emb_dim))
         y_test = torch.tensor(labels_test, dtype=torch.float32)
-        for i in range(len(bal_pairs)):
-            X_test[i] = torch.tensor(
-                np.hstack((query_vecs[bal_pairs_test[i][0]], abs_vecs[bal_pairs_test[i][1]], abs_vecs[bal_pairs_test[i][2]])))
+        for i in range(len(bal_pairs_test)):
+            X_test[i] = torch.tensor(np.hstack((query_vecs[bal_pairs_test[i][0]], abs_vecs[bal_pairs_test[i][1]], abs_vecs[bal_pairs_test[i][2]])))
 
         if torch.cuda.is_available():
             device = torch.device('cuda:0')

@@ -272,7 +272,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
             for i in range(len(docs)):
                 rdata = torch.zeros((len(docs), 3*emb_dim))
                 for j in range(len(docs)):
-                    rdata[j] = np.hstack((query_vecs[q], abs_vecs[docs[i]], abs_vecs[docs[j]]))
+                    rdata[j] = torch.tensor(np.hstack((query_vecs[q], abs_vecs[docs[i]], abs_vecs[docs[j]])))
                 rdata = rdata.to(device)
                 rdata_scores = m(rdata).detach().cpu().numpy()
                 score_matrix[i] = rdata_scores

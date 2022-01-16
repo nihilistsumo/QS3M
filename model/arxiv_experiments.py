@@ -70,10 +70,13 @@ class CATSSimilarityModel_arxiv(nn.Module):
 
 def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, lrate, epochs, batch,
                      eval_num, save, arxiv_vecs=None, arxiv_docs=None):
-    bert_embed_model = models.Transformer(sbert_model_name, max_seq_length=512)
-    pooling_model = models.Pooling(bert_embed_model.get_word_embedding_dimension(), pooling_mode_cls_token=False,
+    if '/' in sbert_model_name:
+        model = SentenceTransformer(sbert_model_name)
+    else:
+        bert_embed_model = models.Transformer(sbert_model_name, max_seq_length=512)
+        pooling_model = models.Pooling(bert_embed_model.get_word_embedding_dimension(), pooling_mode_cls_token=False,
                                    pooling_mode_max_tokens=False, pooling_mode_mean_tokens=True)
-    model = SentenceTransformer(modules=[bert_embed_model, pooling_model])
+        model = SentenceTransformer(modules=[bert_embed_model, pooling_model])
     queries, texts = [], []
     for q in query_map.keys():
         queries.append(q)
@@ -110,7 +113,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
                         neg_k = random.sample(list(dat.keys()), 1)[0]
                     bal_pairs.append((q, curr_docs[i], random.sample(dat[k], 1)[0]))
                     labels.append(0)
-    emb_dim = bert_embed_model.get_word_embedding_dimension()
+    emb_dim = model.get_sentence_embedding_dimension()
     xdata = torch.zeros((len(bal_pairs), 3*emb_dim))
     ydata = torch.tensor(labels, dtype=torch.float32)
     for i in range(len(bal_pairs)):

@@ -27,7 +27,7 @@ This evaluates the trained model on two test datasets (TRECCAR benchmark Y1 trai
 
 To train and evaluate other variations of CATS, please make necessary changes to parameters. A detailed description of various parameters can be found in the following section.
 
-## Parameters models.py
+## Important parameters models.py
 
 - -dd: Path to the dataset, change it to the directory where you downloaded the dataset.
 - -qtr/ qt: Name of the query attention training file. It follows the below format:
@@ -45,3 +45,14 @@ Query:c4539c1ce700a1c9097ffded910ae5a16433a2f7	433a61f8d76e73309ce3e224b955e72e8
 - -ct: Different variations of query-specific similarity algorithms. Options are cats, scaled (CAVS), qscale (experimental) and abl (used for ablation study).
 - --cache: Use intermediate data saved in the cache folder. Useful for experimenting with hyperparameters.
 - --save: Save the trained model.
+
+## Important parameters eval_model.py
+  
+- -qt: Name of the query attention file with the same format as before. Used for clustering evaluation. 
+- -pp: Name of parapairs json file used for pairwise evaluation. It follows the below format:
+  {<Query ID>: {'parapairs': [passage1ID_passage2ID, passage1ID_passage3ID, ...], 'labels': [1, 0, ...]}, ...}
+- -aql: Name of article level qrels in TRECCAR format.
+- -tql: Name of toplevel level qrels in TRECCAR format.
+- -hql: Name of toplevel level qrels in TRECCAR format.
+- -mp: Path to the saved models that we want to evaluate.
+- -mt: Type of the saved model, using the same options as -ct option of models.py.

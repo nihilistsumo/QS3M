@@ -31,12 +31,19 @@ To train and evaluate other variations of CATS, please make necessary changes to
 
 - -dd: Path to the dataset, change it to the directory where you downloaded the dataset.
 - -qtr/ qt: Name of the query attention training file. It follows the below format:
-<Query ID> <Passage 1 ID> <Passage 2 ID> <Binary label>
+
+Query_ID Passage1_ID Passage2_ID Binary_label
+
 For example:
+
 QID	P1	P2	label
+
 Query:fb8aada8fa759f397d76bccb456f03b8c6b04f5e	07b06638e380f0e265df192da81907cb90a14731	90c7c1f216d1de7eee9b10978defa34a86ef3aab	1
+
 Query:4243236b74ede0e38b5e072e3c11063ced49c598	b344fff55993cb37f29eaa8900369bf840c81e2f	29646695b42c392109062388a79f2f873620e9e6	0
+
 Query:c4539c1ce700a1c9097ffded910ae5a16433a2f7	433a61f8d76e73309ce3e224b955e72e89cf7825	6a6d6b4cc930bee716370cc5bc045411063ae103	0
+
 ....
 - -trp/ tp: List of passage IDs in form of numpy array.
 - -trv/ tv: List of passage embedding vectors in form of numpy array in the same order of passage ID list.

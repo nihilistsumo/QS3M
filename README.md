@@ -50,7 +50,7 @@ Query:c4539c1ce700a1c9097ffded910ae5a16433a2f7	433a61f8d76e73309ce3e224b955e72e8
   
 - -qt: Name of the query attention file with the same format as before. Used for clustering evaluation. 
 - -pp: Name of parapairs json file used for pairwise evaluation. It follows the below format:
-  {<Query ID>: {'parapairs': [passage1ID_passage2ID, passage1ID_passage3ID, ...], 'labels': [1, 0, ...]}, ...}
+  {'Query_ID': {'parapairs': [passage1ID_passage2ID, passage1ID_passage3ID, ...], 'labels': [1, 0, ...]}, ...}
 - -aql: Name of article level qrels in TRECCAR format.
 - -tql: Name of toplevel level qrels in TRECCAR format.
 - -hql: Name of toplevel level qrels in TRECCAR format.

@@ -132,7 +132,7 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_pids_file, test_pvecs_f
             y.append(int(parapairs[page]['labels'][i]))
             #y_baseline.append(tfidf_cosine_similarity(p1, p2, ptext_dict))
             #y_baseline.append(jaccard(ptext_dict[p1], ptext_dict[p2]))
-            y_baseline.append(sparse_jsdiv_score(p1, p2))
+            y_baseline.append(sparse_jsdiv_score(p1, p2)) # for topic model
         X_test, y_test = test_data_builder.build_input_data(qry_attn_ts)
         if len(set(y_test.cpu().numpy())) < 2:
             continue
@@ -228,7 +228,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
             X_test_page, y_test_page, page_pairs = test_data_builder.build_input_data_with_pairs(qry_attn_for_page)
             #pair_scores_bal = [tfidf_cosine_similarity(pp.split('_')[0], pp.split('_')[1], ptext_dict) for pp in page_pairs]
             #pair_scores_bal = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in page_pairs]
-            pair_scores_bal = [sparse_jsdiv_score(pp.split('_')[0], pp.split('_')[1]) for pp in page_pairs]
+            pair_scores_bal = [sparse_jsdiv_score(pp.split('_')[0], pp.split('_')[1]) for pp in page_pairs] #for topic model
             pair_scores_bal = (pair_scores_bal - np.min(pair_scores_bal)) / (np.max(pair_scores_bal) - np.min(pair_scores_bal))
             test_auc_page = roc_auc_score(y_test_page, pair_scores_bal)
             cand_auc.append(test_auc_page)
@@ -252,7 +252,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
             X_page, parapairs = test_data_builder.build_cluster_data(qid, paralist)
             #pair_scores = [tfidf_cosine_similarity(pp.split('_')[0], pp.split('_')[1], ptext_dict) for pp in parapairs]
             #pair_scores = [jaccard(ptext_dict[pp.split('_')[0]], ptext_dict[pp.split('_')[1]]) for pp in parapairs]
-            pair_scores = [sparse_jsdiv_score(pp.split('_')[0], pp.split('_')[1]) for pp in parapairs]
+            pair_scores = [sparse_jsdiv_score(pp.split('_')[0], pp.split('_')[1]) for pp in parapairs] #for topic model
             pair_scores = (pair_scores - np.min(pair_scores)) / (np.max(pair_scores) - np.min(pair_scores))
             pair_euclid_scores = torch.sqrt(torch.sum((X_page[:, 768:768 * 2] - X_page[:, 768 * 2:])**2, 1)).numpy()
             pair_euclid_scores = (pair_euclid_scores - np.min(pair_euclid_scores)) / (np.max(pair_euclid_scores) - np.min(pair_euclid_scores))

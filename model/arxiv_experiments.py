@@ -20,9 +20,9 @@ from numpy.random import seed
 seed(42)
 
 
-class CATS_arxiv(nn.Module): # QS3M
+class QS3M_arxiv(nn.Module): # QS3M
     def __init__(self, emb_size):
-        super(CATS_arxiv, self).__init__()
+        super(QS3M_arxiv, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, 5 * emb_size)
         self.LL2 = nn.Linear(5 * emb_size, emb_size)
@@ -62,10 +62,11 @@ class CATS_arxiv(nn.Module): # QS3M
         y_pred = self.forward(X_test)
         return y_pred
 
-class CATSSimilarityModel_arxiv(nn.Module):
+
+class QSSimilarityModel_arxiv(nn.Module):
     def __init__(self, emb_size):
-        super(CATSSimilarityModel_arxiv, self).__init__()
-        self.cats = CATS_arxiv(emb_size)
+        super(QSSimilarityModel_arxiv, self).__init__()
+        self.cats = QS3M_arxiv(emb_size)
 
     def forward(self, X):
         self.pair_scores = self.cats(X)
@@ -329,6 +330,7 @@ def main():
              'stat': 'Statistics'}
     arxiv_experiment(args.arxiv_qlabels, query_map, args.model_name, selected_queries, args.lrate,
                      args.epochs, args.batch, args.eval_num, args.save, args.arxiv_vecs, args.arxiv_docs)
+
 
 if __name__ == '__main__':
     main()

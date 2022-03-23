@@ -1,4 +1,4 @@
-from model.layers import QS3M, CATS_Scaled, CATS_QueryScaler, CATS_manhattan, CATS_Ablation
+from model.layers import QS3M, QSS, QS_QueryScaler, QS_manhattan, QS3M_Ablation
 from data.utils import InputCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -14,6 +14,7 @@ import argparse
 import math
 import time
 import os.path
+
 
 class SimilarityClusteringModel(nn.Module):
     def __init__(self, emb_size, m):
@@ -47,23 +48,25 @@ class SimilarityClusteringModel(nn.Module):
                     sim_matrix[i][j] = sim_matrix[j][i]
         return sim_matrix
 
+
 class CATSSimilarityModel(nn.Module):
     def __init__(self, emb_size, cats_type):
         super(CATSSimilarityModel, self).__init__()
         if cats_type == 'cats':
             self.cats = QS3M(emb_size)
         elif cats_type == 'scaled':
-            self.cats = CATS_Scaled(emb_size)
+            self.cats = QSS(emb_size)
         elif cats_type == 'qscale':
-            self.cats = CATS_QueryScaler(emb_size)
+            self.cats = QS_QueryScaler(emb_size)
         elif cats_type == 'abl':
-            self.cats = CATS_Ablation(emb_size)
+            self.cats = QS3M_Ablation(emb_size)
         else:
             self.cats = None
 
     def forward(self, X):
         self.pair_scores = self.cats(X)
         return self.pair_scores
+
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,
               test_pvecs_file, train_qids_file, test_qids_file, train_qvecs_file, test_qvecs_file, use_cache,
@@ -193,6 +196,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         if not os.path.isdir('saved_models'):
             os.makedirs('saved_models')
         torch.save(m.state_dict(), 'saved_models/'+time.strftime('%b-%d-%Y_%H%M', time.localtime())+'.model')
+
 
 def main():
     parser = argparse.ArgumentParser(description='Run QS3M model')

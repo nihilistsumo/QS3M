@@ -1,6 +1,6 @@
-from model.layers import QS3M, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
+from model.layers import QS3M, QSS, QS_QueryScaler, QS_manhattan
 from model.models import CATSSimilarityModel
-from model.sent_models import CATSSentenceModel
+from model.sent_models import QS3MSentenceModel
 from data.utils import InputCATSDatasetBuilder, read_art_qrels, InputSentenceCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -18,6 +18,7 @@ import time
 import json
 from scipy.stats import ttest_rel
 
+
 def calc_f1(y_true, y_pred):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
@@ -25,6 +26,7 @@ def calc_f1(y_true, y_pred):
     yp = np.array([1.0 if d > 0.5 else 0.0 for d in yp])
     test_f1 = f1_score(y_true, yp)
     return test_f1
+
 
 def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_pids_para_file, test_pvecs_para_file,
                    test_qids_file, test_qvecs_file, max_seq_len):
@@ -82,6 +84,7 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
     euc_auc = np.mean(np.array(anchor_auc))
     euc_f1 = np.mean(np.array(anchor_f1))
     return all_auc, euc_auc, paired_ttest, all_f1, euc_f1, paired_ttest_f1
+
 
 def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, test_pids_para_file, test_pvecs_para_file,
                  test_qids_file, test_qvecs_file, article_qrels, top_qrels, hier_qrels, max_seq_len):
@@ -257,6 +260,7 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
     return test_auc, euclid_auc, mean_ari, mean_euc_ari, mean_ari_hq, mean_euc_ari_hq, \
            paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc, test_f1, euclid_f1, paired_ttest_f1
 
+
 def main():
 
     parser = argparse.ArgumentParser(description='Run QS3M model')
@@ -313,7 +317,7 @@ def main():
     args = parser.parse_args()
     dat = args.data_dir
 
-    model = CATSSentenceModel(768, args.param_n, args.model_type, args.cats_path)
+    model = QS3MSentenceModel(768, args.param_n, args.model_type, args.cats_path)
     model.load_state_dict(torch.load(args.model_path))
     model.eval()
     print("\nPagewise benchmark Y1 test")
@@ -365,6 +369,7 @@ def main():
     print("Method top ARI: %.5f (p %.5f), hier ARI: %.5f (p %.5f)" %
           (mean_ari2, paired_ttest_ari2[1], mean_ari_hq2, paired_ttest_ari_hq2[1]))
     print("Euclid top ARI: %.5f, hier ARI: %.5f" % (mean_euc_ari2, mean_euc_ari_hq2))
+
 
 if __name__ == '__main__':
     main()

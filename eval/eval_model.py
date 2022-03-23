@@ -1,6 +1,6 @@
-from model.layers import QS3M, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
+from model.layers import QS3M, QSS, QS_QueryScaler, QS_manhattan
 from model.models import CATSSimilarityModel
-from model.sent_models import CATSSentenceModel
+from model.sent_models import QS3MSentenceModel
 from data.utils import InputCATSDatasetBuilder, read_art_qrels
 import torch
 torch.manual_seed(42)
@@ -18,6 +18,7 @@ import time
 import json
 from scipy.stats import ttest_rel
 
+
 def calc_f1(y_true, y_pred):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
@@ -25,6 +26,7 @@ def calc_f1(y_true, y_pred):
     yp = np.array([1.0 if d > 0.5 else 0.0 for d in yp])
     test_f1 = f1_score(y_true, yp)
     return test_f1
+
 
 def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file):
@@ -97,6 +99,7 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
     mean_cos_f1 = np.mean(np.array(cos_f1))
 
     return mean_auc, mean_euclid_auc, mean_cos_auc, paired_ttest, mean_f1, mean_euclid_f1, mean_cos_f1, paired_ttest_f1
+
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, hier_qrels):
@@ -302,6 +305,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     paired_ttest_ari_hq = ttest_rel(anchor_ari_scores_hq, cand_ari_scores_hq)
     return test_auc, euclid_auc, cos_auc, mean_ari, mean_euc_ari, mean_cos_ari, mean_ari_hq, mean_euc_ari_hq, \
            mean_cos_ari_hq, paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc, test_f1, euclid_f1, cos_f1, paired_ttest_f1
+
 
 def main():
 

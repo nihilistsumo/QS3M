@@ -44,9 +44,9 @@ class QS3M(nn.Module): # QS3M
         y_pred = self.forward(X_test)
         return y_pred
 
-class CATS_Ablation(nn.Module):
+class QS3M_Ablation(nn.Module):
     def __init__(self, emb_size):
-        super(CATS_Ablation, self).__init__()
+        super(QS3M_Ablation, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
@@ -149,9 +149,9 @@ class Sent_Attention(nn.Module):
         return y_pred
 
 
-class CATS_Attention(nn.Module):
+class QS3M_Attention(nn.Module):
     def __init__(self, emb_size, n):
-        super(CATS_Attention, self).__init__()
+        super(QS3M_Attention, self).__init__()
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:
@@ -220,9 +220,9 @@ class CATS_Attention(nn.Module):
         y_pred = self.forward(X_test)
         return y_pred
 
-class Sent_FixedCATS_Attention(nn.Module):
+class Sent_FixedQS3M_Attention(nn.Module):
     def __init__(self, emb_size, n, cats_model):
-        super(Sent_FixedCATS_Attention, self).__init__()
+        super(Sent_FixedQS3M_Attention, self).__init__()
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
         else:
@@ -283,9 +283,9 @@ class Sent_FixedCATS_Attention(nn.Module):
         return y_pred
 
 
-class CATS_Scaled(nn.Module): # CAVS
+class QSS(nn.Module): # QSS
     def __init__(self, emb_size):
-        super(CATS_Scaled, self).__init__()
+        super(QSS, self).__init__()
         self.emb_size = emb_size
         self.n = 32
         self.LL1 = nn.Linear(emb_size, self.n)
@@ -326,9 +326,9 @@ class CATS_Scaled(nn.Module): # CAVS
         return y_pred
 
 
-class CATS_QueryScaler(nn.Module):
+class QS_QueryScaler(nn.Module):
     def __init__(self, emb_size):
-        super(CATS_QueryScaler, self).__init__()
+        super(QS_QueryScaler, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
@@ -363,9 +363,9 @@ class CATS_QueryScaler(nn.Module):
         y_pred = self.forward(X_test)
         return y_pred
 
-class CATS_manhattan(nn.Module):
+class QS_manhattan(nn.Module):
     def __init__(self, emb_size):
-        super(CATS_manhattan, self).__init__()
+        super(QS_manhattan, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)

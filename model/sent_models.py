@@ -1,4 +1,4 @@
-from model.layers import CATS_Attention, Sent_Attention, Sent_FixedCATS_Attention
+from model.layers import QS3M_Attention, Sent_Attention, Sent_FixedQS3M_Attention
 from data.utils import InputSentenceCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -15,23 +15,25 @@ import math
 import time
 from model.models import CATSSimilarityModel
 
-class CATSSentenceModel(nn.Module):
+
+class QS3MSentenceModel(nn.Module):
     def __init__(self, emb_size, n, model_type, cats_path=None):
-        super(CATSSentenceModel, self).__init__()
+        super(QS3MSentenceModel, self).__init__()
         if model_type == 'cats':
-            self.cats = CATS_Attention(emb_size, n)
+            self.cats = QS3M_Attention(emb_size, n)
         elif model_type == 'sent':
             self.cats = Sent_Attention(emb_size, n)
         elif model_type == 'fcats':
             cats_model = CATSSimilarityModel(768, 'cats')
             cats_model.load_state_dict(torch.load(cats_path))
-            self.cats = Sent_FixedCATS_Attention(emb_size, n, cats_model)
+            self.cats = Sent_FixedQS3M_Attention(emb_size, n, cats_model)
         else:
             self.cats = None
 
     def forward(self, Xq, Xp):
         self.pair_scores = self.cats(Xq, Xp)
         return self.pair_scores
+
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,
               test_pvecs_file, train_qids_file, test_qids_file, train_qvecs_file, test_qvecs_file, use_cache,
@@ -123,7 +125,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_test = y_test.cuda()
     '''
 
-    m = CATSSentenceModel(768, n, model_type, cats_path).to(device)
+    m = QS3MSentenceModel(768, n, model_type, cats_path).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     for i in range(epochs):
@@ -163,6 +165,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
 
     if save:
         torch.save(m.state_dict(), 'saved_models/' + time.strftime('%b-%d-%Y_%H%M', time.localtime()) + '.model')
+
 
 def main():
     parser = argparse.ArgumentParser(description='Run QS3M sentwise model')

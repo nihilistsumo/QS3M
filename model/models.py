@@ -1,4 +1,4 @@
-from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan, CATS_Ablation
+from model.layers import QS3M, CATS_Scaled, CATS_QueryScaler, CATS_manhattan, CATS_Ablation
 from data.utils import InputCATSDatasetBuilder
 import torch
 torch.manual_seed(42)
@@ -18,7 +18,7 @@ import os.path
 class SimilarityClusteringModel(nn.Module):
     def __init__(self, emb_size, m):
         super(SimilarityClusteringModel, self).__init__()
-        self.cats = CATS(emb_size)
+        self.cats = QS3M(emb_size)
         self.m = m
 
     '''
@@ -51,7 +51,7 @@ class CATSSimilarityModel(nn.Module):
     def __init__(self, emb_size, cats_type):
         super(CATSSimilarityModel, self).__init__()
         if cats_type == 'cats':
-            self.cats = CATS(emb_size)
+            self.cats = QS3M(emb_size)
         elif cats_type == 'scaled':
             self.cats = CATS_Scaled(emb_size)
         elif cats_type == 'qscale':
@@ -195,7 +195,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         torch.save(m.state_dict(), 'saved_models/'+time.strftime('%b-%d-%Y_%H%M', time.localtime())+'.model')
 
 def main():
-    parser = argparse.ArgumentParser(description='Run CATS model')
+    parser = argparse.ArgumentParser(description='Run QS3M model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/new_cats_data/")
     parser.add_argument('-qtr', '--qry_attn_train', default="half-y1train-qry-attn.tsv")
     parser.add_argument('-trp', '--train_pids', default="raw_bert_embeds/y1train-raw-bert-mean-pool-all-pids.npy")

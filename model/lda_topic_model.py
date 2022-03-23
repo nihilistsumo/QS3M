@@ -23,7 +23,7 @@ def train_lda_tm(train_ptext_dict, num_topics, update, passes, token_dict_out, m
     model.save(model_out_file)
 
 def main():
-    parser = argparse.ArgumentParser(description='Run CATS model')
+    parser = argparse.ArgumentParser(description='Run QS3M model')
     parser.add_argument('-tp', '--train_ptext', default="/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paratext.tsv")
     parser.add_argument('-nt', '--num_topics', type=int, default=300)
     parser.add_argument('-up', '--update', type=int, default=0)

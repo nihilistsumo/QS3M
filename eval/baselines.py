@@ -325,7 +325,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
            paired_ttest_ari, paired_ttest_ari_hq, paired_ttest_auc, test_f1, euclid_f1, paired_ttest_f1
 
 def main():
-    parser = argparse.ArgumentParser(description='Run CATS model')
+    parser = argparse.ArgumentParser(description='Run QS3M model')
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/CATS_data/")
     parser.add_argument('-tm', '--topic_model', default="/home/sk1105/sumanta/CATS_data/topic_model/topic_model_half-y1train-qry-attn-t200.model")
@@ -366,7 +366,7 @@ def main():
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path',
-                        default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+                        default="/home/sk1105/sumanta/QS3M/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
     '''
     args = parser.parse_args()

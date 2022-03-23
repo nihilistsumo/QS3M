@@ -2,9 +2,9 @@ import torch
 torch.manual_seed(42)
 import torch.nn as nn
 
-class CATS(nn.Module): # CATS
+class QS3M(nn.Module): # QS3M
     def __init__(self, emb_size):
-        super(CATS, self).__init__()
+        super(QS3M, self).__init__()
         self.emb_size = emb_size
         self.LL1 = nn.Linear(emb_size, emb_size)
         self.LL2 = nn.Linear(emb_size, emb_size)
@@ -14,7 +14,7 @@ class CATS(nn.Module): # CATS
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
@@ -56,7 +56,7 @@ class CATS_Ablation(nn.Module):
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         #self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
@@ -109,7 +109,7 @@ class Sent_Attention(nn.Module):
 
         :param Xq: context vec of shape (m X vec size)
         :param Xp: para sent vecs of shape (m X 2*vec size + 2 X max seq len)
-        :return: Pairwise CATS scores of shape (mC2 X 1)
+        :return: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         b = Xq.shape[0]
         seq = Xp.shape[2]
@@ -170,7 +170,7 @@ class CATS_Attention(nn.Module):
 
         :param Xq: context vec of shape (m X vec size)
         :param Xp: para sent vecs of shape (m X 2*vec size + 2 X max seq len)
-        :return: Pairwise CATS scores of shape (mC2 X 1)
+        :return: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         b = Xq.shape[0]
         seq = Xp.shape[2]
@@ -241,7 +241,7 @@ class Sent_FixedCATS_Attention(nn.Module):
 
         :param Xq: context vec of shape (m X vec size)
         :param Xp: para sent vecs of shape (m X 2*vec size + 2 X max seq len)
-        :return: Pairwise CATS scores of shape (mC2 X 1)
+        :return: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         b = Xq.shape[0]
         seq = Xp.shape[2]
@@ -300,7 +300,7 @@ class CATS_Scaled(nn.Module): # CAVS
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
@@ -340,7 +340,7 @@ class CATS_QueryScaler(nn.Module):
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
@@ -374,7 +374,7 @@ class CATS_manhattan(nn.Module):
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]

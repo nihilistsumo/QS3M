@@ -20,7 +20,7 @@ from numpy.random import seed
 seed(42)
 
 
-class CATS_arxiv(nn.Module): # CATS
+class CATS_arxiv(nn.Module): # QS3M
     def __init__(self, emb_size):
         super(CATS_arxiv, self).__init__()
         self.emb_size = emb_size
@@ -32,7 +32,7 @@ class CATS_arxiv(nn.Module): # CATS
         '''
 
         :param X: The input tensor is of shape (mC2 X 3*vec size) where m = num of paras for each query
-        :return s: Pairwise CATS scores of shape (mC2 X 1)
+        :return s: Pairwise QS3M scores of shape (mC2 X 1)
         '''
         self.Xq = X[:, :self.emb_size]
         self.Xp1 = X[:, self.emb_size:2 * self.emb_size]
@@ -303,7 +303,7 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run CATS model')
+    parser = argparse.ArgumentParser(description='Run QS3M model')
     parser.add_argument('-ad', '--arxiv_docs', default=None)
     parser.add_argument('-av', '--arxiv_vecs', default=None)
     parser.add_argument('-ql', '--arxiv_qlabels', default='/home/sk1105/sumanta/arxiv_data_for_cats/arxiv_qlabels_for_cats.npy')

@@ -1,4 +1,4 @@
-from model.layers import CATS, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
+from model.layers import QS3M, CATS_Scaled, CATS_QueryScaler, CATS_manhattan
 from model.models import CATSSimilarityModel
 from model.sent_models import CATSSentenceModel
 from data.utils import InputCATSDatasetBuilder, read_art_qrels
@@ -305,7 +305,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Run CATS model')
+    parser = argparse.ArgumentParser(description='Run QS3M model')
 
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/new_cats_data/")
 
@@ -345,7 +345,7 @@ def main():
     parser.add_argument('-tqv', '--test_qvecs', default="by2test-context-qvecs.npy")
     parser.add_argument('-mt', '--model_type', default="cats")
     parser.add_argument('-mp', '--model_path',
-                        default="/home/sk1105/sumanta/CATS/saved_models/cats_leadpara_b32_l0.00001_i3.model")
+                        default="/home/sk1105/sumanta/QS3M/saved_models/cats_leadpara_b32_l0.00001_i3.model")
 
     '''
     args = parser.parse_args()

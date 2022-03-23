@@ -165,7 +165,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         torch.save(m.state_dict(), 'saved_models/' + time.strftime('%b-%d-%Y_%H%M', time.localtime()) + '.model')
 
 def main():
-    parser = argparse.ArgumentParser(description='Run CATS sentwise model')
+    parser = argparse.ArgumentParser(description='Run QS3M sentwise model')
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/new_cats_data/")
     parser.add_argument('-qtr', '--qry_attn_train', default="half-y1train-qry-attn.tsv")
     parser.add_argument('-qt', '--qry_attn_test', default="by1train-qry-attn-bal-allpos.tsv")

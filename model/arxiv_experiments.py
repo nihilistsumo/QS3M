@@ -13,7 +13,7 @@ import math
 import os
 import argparse
 from tqdm import tqdm
-from model.models import CATSSimilarityModel
+from model.models import QSSimilarityModel
 random.seed(42)
 torch.manual_seed(42)
 from numpy.random import seed
@@ -213,8 +213,8 @@ def arxiv_experiment(arxiv_qlabel, query_map, sbert_model_name, select_queries, 
 
         train_samples = X_train.shape[0]
         test_samples = X_test.shape[0]
-        m = CATSSimilarityModel(emb_dim, 'cats').to(device)
-        m.cats.to(device)
+        m = QSSimilarityModel(emb_dim, 'cats').to(device)
+        m.qs.to(device)
         opt = optim.Adam(m.parameters(), lr=lrate)
         mseloss = nn.MSELoss()
         X_test = X_test.to(device)

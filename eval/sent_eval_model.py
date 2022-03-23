@@ -1,7 +1,7 @@
 from model.layers import QS3M, QSS, QS_QueryScaler, QS_manhattan
-from model.models import CATSSimilarityModel
+from model.models import QSSimilarityModel
 from model.sent_models import QS3MSentenceModel
-from data.utils import InputCATSDatasetBuilder, read_art_qrels, InputSentenceCATSDatasetBuilder
+from data.utils import InputQS3MDatasetBuilder, read_art_qrels, InputSentenceQS3MDatasetBuilder
 import torch
 torch.manual_seed(42)
 import torch.nn as nn
@@ -46,8 +46,8 @@ def eval_all_pairs(parapairs_data, model, test_pids_file, test_pvecs_file, test_
             p1 = parapairs[page]['parapairs'][i].split('_')[0]
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
-    test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
-    test_data_builder_para = InputCATSDatasetBuilder(qry_attn, test_pids_para, test_pvecs_para, test_qids, test_qvecs)
+    test_data_builder = InputSentenceQS3MDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
+    test_data_builder_para = InputQS3MDatasetBuilder(qry_attn, test_pids_para, test_pvecs_para, test_qids, test_qvecs)
     cand_auc = []
     cand_f1 = []
     anchor_auc = []
@@ -103,8 +103,8 @@ def eval_cluster(qry_attn_file_test, model, test_pids_file, test_pvecs_file, tes
     test_qids = np.load(test_qids_file)
     test_qvecs = np.load(test_qvecs_file)
 
-    test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_full, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
-    test_data_builder_para = InputCATSDatasetBuilder(qry_attn_full, test_pids_para, test_pvecs_para, test_qids, test_qvecs)
+    test_data_builder = InputSentenceQS3MDatasetBuilder(qry_attn_full, test_pids, test_pvecs, test_qids, test_qvecs, max_seq_len)
+    test_data_builder_para = InputQS3MDatasetBuilder(qry_attn_full, test_pids_para, test_pvecs_para, test_qids, test_qvecs)
 
     page_paras = read_art_qrels(article_qrels)
     para_labels = {}

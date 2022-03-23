@@ -1,5 +1,5 @@
 from model.layers import QS3M_Attention, Sent_Attention, Sent_FixedQS3M_Attention
-from data.utils import InputSentenceCATSDatasetBuilder
+from data.utils import InputSentenceQS3MDatasetBuilder
 import torch
 torch.manual_seed(42)
 import torch.nn as nn
@@ -13,7 +13,7 @@ from sklearn.metrics import roc_auc_score
 import argparse
 import math
 import time
-from model.models import CATSSimilarityModel
+from model.models import QSSimilarityModel
 
 
 class QS3MSentenceModel(nn.Module):
@@ -24,7 +24,7 @@ class QS3MSentenceModel(nn.Module):
         elif model_type == 'sent':
             self.cats = Sent_Attention(emb_size, n)
         elif model_type == 'fcats':
-            cats_model = CATSSimilarityModel(768, 'cats')
+            cats_model = QSSimilarityModel(768, 'cats')
             cats_model.load_state_dict(torch.load(cats_path))
             self.cats = Sent_FixedQS3M_Attention(emb_size, n, cats_model)
         else:
@@ -69,10 +69,10 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_qvecs = np.load(test_qvecs_file)
 
         print('Building train data')
-        train_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs, max_seq)
+        train_data_builder = InputSentenceQS3MDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs, max_seq)
         X_train_q, X_train_p, y_train, _ = train_data_builder.build_input_data()
         print('Building test data')
-        test_data_builder = InputSentenceCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs, max_seq)
+        test_data_builder = InputSentenceQS3MDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs, max_seq)
         X_test_q, X_test_p, y_test, _ = test_data_builder.build_input_data()
 
         val_split_ratio = 0.1

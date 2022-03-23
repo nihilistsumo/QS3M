@@ -1,5 +1,5 @@
 from model.layers import QS3M, QSS, QS_QueryScaler, QS_manhattan, QS3M_Ablation
-from data.utils import InputCATSDatasetBuilder
+from data.utils import InputQS3MDatasetBuilder
 import torch
 torch.manual_seed(42)
 import torch.nn as nn
@@ -19,7 +19,7 @@ import os.path
 class SimilarityClusteringModel(nn.Module):
     def __init__(self, emb_size, m):
         super(SimilarityClusteringModel, self).__init__()
-        self.cats = QS3M(emb_size)
+        self.qs3m = QS3M(emb_size)
         self.m = m
 
     '''
@@ -27,7 +27,7 @@ class SimilarityClusteringModel(nn.Module):
     and v = emb vec length
     '''
     def forward(self, X):
-        self.pair_score_matrix = self.cats(X)
+        self.pair_score_matrix = self.qs3m(X)
         tf.sim_matrix = tf.map_fn(self.arrange_simscore_in_sim_matrix, self.pair_score_matrix)
         '''
         TODO
@@ -49,28 +49,28 @@ class SimilarityClusteringModel(nn.Module):
         return sim_matrix
 
 
-class CATSSimilarityModel(nn.Module):
-    def __init__(self, emb_size, cats_type):
-        super(CATSSimilarityModel, self).__init__()
-        if cats_type == 'cats':
-            self.cats = QS3M(emb_size)
-        elif cats_type == 'scaled':
-            self.cats = QSS(emb_size)
-        elif cats_type == 'qscale':
-            self.cats = QS_QueryScaler(emb_size)
-        elif cats_type == 'abl':
-            self.cats = QS3M_Ablation(emb_size)
+class QSSimilarityModel(nn.Module):
+    def __init__(self, emb_size, qs_type):
+        super(QSSimilarityModel, self).__init__()
+        if qs_type == 'qs3m':
+            self.qs = QS3M(emb_size)
+        elif qs_type == 'qss':
+            self.qs = QSS(emb_size)
+        elif qs_type == 'qs':
+            self.qs = QS_QueryScaler(emb_size)
+        elif qs_type == 'abl':
+            self.qs = QS3M_Ablation(emb_size)
         else:
-            self.cats = None
+            self.qs = None
 
     def forward(self, X):
-        self.pair_scores = self.cats(X)
+        self.pair_scores = self.qs(X)
         return self.pair_scores
 
 
 def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pids_file, train_pvecs_file,
               test_pvecs_file, train_qids_file, test_qids_file, train_qvecs_file, test_qvecs_file, use_cache,
-              lrate, batch, epochs, save, cats_type):
+              lrate, batch, epochs, save, qs_type):
     if not use_cache:
         qry_attn_tr = []
         qry_attn_ts = []
@@ -102,10 +102,10 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
         test_qvecs = np.load(test_qvecs_file)
 
         print('Building train data')
-        train_data_builder = InputCATSDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs)
+        train_data_builder = InputQS3MDatasetBuilder(qry_attn_tr, train_pids, train_pvecs, train_qids, train_qvecs)
         X_train, y_train = train_data_builder.build_input_data()
         print('Building test data')
-        test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+        test_data_builder = InputQS3MDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
         X_test, y_test = test_data_builder.build_input_data()
 
         val_split_ratio = 0.1
@@ -162,7 +162,7 @@ def run_model(qry_attn_file_train, qry_attn_file_test, train_pids_file, test_pid
     y_test = y_test.cuda()
     '''
 
-    m = CATSSimilarityModel(768, cats_type).to(device)
+    m = QSSimilarityModel(768, qs_type).to(device)
     opt = optim.Adam(m.parameters(), lr=lrate)
     mseloss = nn.MSELoss()
     print('Starting training...')

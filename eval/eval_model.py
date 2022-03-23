@@ -1,7 +1,7 @@
 from model.layers import QS3M, QSS, QS_QueryScaler, QS_manhattan
-from model.models import CATSSimilarityModel
+from model.models import QSSimilarityModel
 from model.sent_models import QS3MSentenceModel
-from data.utils import InputCATSDatasetBuilder, read_art_qrels
+from data.utils import InputQS3MDatasetBuilder, read_art_qrels
 import torch
 torch.manual_seed(42)
 import torch.nn as nn
@@ -34,7 +34,7 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
     test_pvecs = np.load(test_pvecs_file)
     test_qids = np.load(test_qids_file)
     test_qvecs = np.load(test_qvecs_file)
-    model = CATSSimilarityModel(768, model_type)
+    model = QSSimilarityModel(768, model_type)
     model.load_state_dict(torch.load(model_path))
     model.eval()
     model.cpu()
@@ -55,7 +55,7 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
 
-    test_data_builder = InputCATSDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs)
+    test_data_builder = InputQS3MDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs)
     for page in parapairs.keys():
         qry_attn_ts = []
         qid = 'Query:'+sha1(str.encode(page)).hexdigest()
@@ -103,7 +103,7 @@ def eval_all_pairs(parapairs_data, model_path, model_type, test_pids_file, test_
 
 def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, test_pvecs_file, test_qids_file,
                  test_qvecs_file, article_qrels, top_qrels, hier_qrels):
-    model = CATSSimilarityModel(768, model_type)
+    model = QSSimilarityModel(768, model_type)
     model.load_state_dict(torch.load(model_path))
     model.eval()
     qry_attn_ts = []
@@ -119,7 +119,7 @@ def eval_cluster(model_path, model_type, qry_attn_file_test, test_pids_file, tes
     test_qids = np.load(test_qids_file)
     test_qvecs = np.load(test_qvecs_file)
 
-    test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+    test_data_builder = InputQS3MDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
     #X_test, y_test = test_data_builder.build_input_data()
 
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)

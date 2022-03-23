@@ -1,6 +1,6 @@
-# CATS: Context Aware Triamese Similarity metric 
+# QS3M: Query-Specific Siamese Similarity Metric 
 
-We propose a query Context-Aware Triamese Similarity (CATS) metric for query-specific clustering of paragraph-length texts. Our approach uses embeddings from BERT’s transformer to train a non-linear projection into a query-specific similarity space. We build on the idea of Siamese networks to include a third component, the query representation. Unlike other task-specific metric learning approaches, CATS accepts new unseen queries during test time. The empirical evaluation employs two TREC datasets to derive flat and hierarchical benchmarks for clustering. CATS achieves significant performance improvements over a recently published BERT-based reference method, as well as many baselines such as TF-IDF and topic models. This improvement translates to a 12% relative performance gain when extracting query-relevant subtopic clusters.
+We propose a Query-Specific Siamese Similarity Metric (QS3M) for query-specific clustering of text documents. Our approach uses fine-tuned BERT embeddings to train a non-linear projection into a query-specific similarity space. We build on the idea of Siamese networks, but include a third component, a representation of the query. QS3M is able to model the fine-grained similarity between text passages about the same broad topic and also generalizes to new unseen queries during evaluation. The empirical evaluation for clustering employs two TREC datasets and a set of academic abstracts from ArXiv. When used to obtain query-relevant clusters, QS3M achieves a 12\% performance improvement on the TREC datasets over a strong BERT-based reference method, as well as many baselines such as TF-IDF and topic models. A similar improvement is observed for the arXiv dataset suggesting the general applicability of QS3M to different domains. Qualitative evaluation is carried out to gain insight into the strengths and limitations of the model.
 
 ## Quickstart
 
@@ -8,16 +8,16 @@ We propose a query Context-Aware Triamese Similarity (CATS) metric for query-spe
 
 2. Clone this repository, move to the directory and add the current directory to the python classpath
 ```
-git clone https://github.com/nihilistsumo/CATS.git
-cd CATS
+git clone https://github.com/nihilistsumo/QS3M.git
+cd QS3M
 export PYTHONPATH=.
 ```
 
-3. Train the CATS model
+3. Train the QS3M model
 ```
 python3 model/models.py -dd path/to/downloaded/data/ --save
 ```
-This trains the CATS model with the default parameters and saves the trained model in the "saved_models" directory inside the current directory.
+This trains the QS3M model with the default parameters and saves the trained model in the "saved_models" directory inside the current directory.
 
 4. Evaluate the trained model
 ```
@@ -25,7 +25,7 @@ python3 eval/eval_model.py -dd path/to/downloaded/data/ -mp saved_models/name-of
 ```
 This evaluates the trained model on two test datasets (TRECCAR benchmark Y1 train and test). Specify the model name saved in "saved_models" directory trained in the previous step.
 
-To train and evaluate other variations of CATS, please make necessary changes to parameters. A detailed description of various parameters can be found in the following section.
+To train and evaluate other variations of QS3M, please make necessary changes to parameters. A detailed description of various parameters can be found in the following section.
 
 ## Important parameters models.py
 

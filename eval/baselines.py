@@ -1,6 +1,6 @@
 from sklearn.metrics import roc_auc_score, adjusted_rand_score, f1_score
 from sklearn.feature_extraction.text import TfidfVectorizer
-from data.utils import read_art_qrels, InputCATSDatasetBuilder
+from data.utils import read_art_qrels, InputQS3MDatasetBuilder
 from sklearn.cluster import AgglomerativeClustering
 import numpy as np
 import json
@@ -119,7 +119,7 @@ def eval_all_pairs(parapairs_data, test_ptext_file, test_pids_file, test_pvecs_f
             p2 = parapairs[page]['parapairs'][i].split('_')[1]
             qry_attn.append([qid, p1, p2, int(parapairs[page]['labels'][i])])
 
-    test_data_builder = InputCATSDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs)
+    test_data_builder = InputQS3MDatasetBuilder(qry_attn, test_pids, test_pvecs, test_qids, test_qvecs)
     for page in parapairs.keys():
         qry_attn_ts = []
         qid = 'Query:' + sha1(str.encode(page)).hexdigest()
@@ -178,7 +178,7 @@ def eval_cluster(qry_attn_file_test, test_ptext_file, test_pids_file, test_pvecs
     test_qids = np.load(test_qids_file)
     test_qvecs = np.load(test_qvecs_file)
 
-    test_data_builder = InputCATSDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
+    test_data_builder = InputQS3MDatasetBuilder(qry_attn_ts, test_pids, test_pvecs, test_qids, test_qvecs)
 
     page_paras = read_art_qrels(article_qrels)
     para_labels = {}

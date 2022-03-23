@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 import torch
 torch.manual_seed(42)
 
+
 class InputClusterDatasetBuilder:
     '''
     query_para_data: {query ID:{'paras':[], 'cluster_labels':[]}, .... }
@@ -52,7 +53,8 @@ class InputClusterDatasetBuilder:
         print('X shape: '+str(X.shape)+', y shape: '+str(y.shape))
         return X, y
 
-class InputCATSDatasetBuilder:
+
+class InputQS3MDatasetBuilder:
     '''
     query_attn_data: [[query ID, para1 ID, para2 ID, int label], ....]
     '''
@@ -151,7 +153,8 @@ class InputCATSDatasetBuilder:
         #print(qid+' X shape: '+str(X.shape))
         return X, parapairs
 
-class InputSentenceCATSDatasetBuilder:
+
+class InputSentenceQS3MDatasetBuilder:
     '''
         query_attn_data: [[query ID, para1 ID, para2 ID, int label], ....]
         '''
@@ -283,7 +286,6 @@ class InputSentenceCATSDatasetBuilder:
         return Xq, Xp, pairs
 
 
-
 def query_embedder(query_list, embedding_model):
     query_embed = {}
     queries = []
@@ -299,6 +301,7 @@ def query_embedder(query_list, embedding_model):
         query_embed[query_ids[i]] = {'query': queries[i], 'query_vec': query_vecs[i]}
     return query_embed
 
+
 def rewrite_qry_attn_with_qryID(old_qry_attn_file, output_file):
     with open(old_qry_attn_file, 'r') as sq:
         lines = []
@@ -309,6 +312,7 @@ def rewrite_qry_attn_with_qryID(old_qry_attn_file, output_file):
     with open(output_file, 'w') as out:
         for l in lines:
             out.write(l)
+
 
 def read_art_qrels(art_qrels):
     page_paras = {}
@@ -321,23 +325,3 @@ def read_art_qrels(art_qrels):
             else:
                 page_paras[q].append(p)
     return page_paras
-
-def main():
-    qry_attn_file = '/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn.tsv'
-    pids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paraids-sentwise.npy')
-    pvecs_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-qry-attn-paravecs-sentwise.npy')
-    qids_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-context-qids.npy')
-    qvecs_npy = np.load('/home/sk1105/sumanta/CATS_data/half-y1train-context-qvecs.npy')
-    qry_attn = []
-    with open(qry_attn_file, 'r') as trf:
-        f = True
-        for l in trf:
-            if f:
-                f = False
-                continue
-            qry_attn.append(l.split('\t'))
-    dat = InputSentenceCATSDatasetBuilder(qry_attn, pids_npy, pvecs_npy, qids_npy, qvecs_npy)
-    Xq, Xp, y = dat.build_input_data()
-
-if __name__ == '__main__':
-    main()

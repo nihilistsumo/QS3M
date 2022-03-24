@@ -268,10 +268,10 @@ def main():
     parser.add_argument('-dd', '--data_dir', default="/home/sk1105/sumanta/new_cats_data/")
 
     parser.add_argument('-qt1', '--qry_attn_test1', default="by1test-qry-attn-bal-allpos.tsv")
-    parser.add_argument('-aql1', '--art_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
-    parser.add_argument('-tql1', '--top_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
-    parser.add_argument('-hql1', '--hier_qrels1', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
-    parser.add_argument('-pp1', '--parapairs1', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/test-cleaned-parapairs/by1-test-cleaned.parapairs.json")
+    parser.add_argument('-aql1', '--art_qrels1', default="benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-article.qrels")
+    parser.add_argument('-tql1', '--top_qrels1', default="benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql1', '--hier_qrels1', default="benchmarkY1/benchmarkY1-test-nodup/test.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-pp1', '--parapairs1', default="by1-test-cleaned.parapairs.json")
     parser.add_argument('-tp1', '--test_pids1', default="by1test-all-pids-sentwise.npy")
     parser.add_argument('-tv1', '--test_pvecs1', default="by1test-all-paravecs-sentwise.npy")
     parser.add_argument('-tpp1', '--test_pids_para1', default="by1test-all-pids.npy")
@@ -280,10 +280,10 @@ def main():
     parser.add_argument('-tqv1', '--test_qvecs1', default="by1test-context-title-qvecs.npy") #change
 
     parser.add_argument('-qt2', '--qry_attn_test2', default="by1train-qry-attn-bal-allpos.tsv")
-    parser.add_argument('-aql2', '--art_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
-    parser.add_argument('-tql2', '--top_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
-    parser.add_argument('-hql2', '--hier_qrels2', default="/home/sk1105/sumanta/trec_dataset/benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
-    parser.add_argument('-pp2', '--parapairs2', default="/home/sk1105/sumanta/Mule-data/input_data_v2/pairs/train-cleaned-parapairs/by1-train-cleaned.parapairs.json")
+    parser.add_argument('-aql2', '--art_qrels2', default="benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-article.qrels")
+    parser.add_argument('-tql2', '--top_qrels2', default="benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-toplevel.qrels")
+    parser.add_argument('-hql2', '--hier_qrels2', default="benchmarkY1/benchmarkY1-train-nodup/train.pages.cbor-hierarchical.qrels")
+    parser.add_argument('-pp2', '--parapairs2', default="by1-train-cleaned.parapairs.json")
     parser.add_argument('-tp2', '--test_pids2', default="by1train-all-pids-sentwise.npy")
     parser.add_argument('-tv2', '--test_pvecs2', default="by1train-all-paravecs-sentwise.npy")
     parser.add_argument('-tpp2', '--test_pids_para2', default="by1train-all-pids.npy")
@@ -322,7 +322,7 @@ def main():
     model.eval()
     print("\nPagewise benchmark Y1 test")
     print("==========================")
-    all_auc1, euc_auc1, ttest_auc1, all_fm1, all_euc_fm1, ttest_fm1 = eval_all_pairs(args.parapairs1, model, dat+args.test_pids1,
+    all_auc1, euc_auc1, ttest_auc1, all_fm1, all_euc_fm1, ttest_fm1 = eval_all_pairs(dat+args.parapairs1, model, dat+args.test_pids1,
                                                        dat+args.test_pvecs1, dat+args.test_pids_para1,
                                                        dat+args.test_pvecs_para1, dat+args.test_qids1,
                                                        dat+args.test_qvecs1, args.max_seq)
@@ -330,12 +330,12 @@ def main():
     paired_ttest_ari_hq1, ttest_bal_auc1, bal_fm1, bal_euc_fm1, ttest_bal_fm1 = eval_cluster(dat+args.qry_attn_test1, model, dat+args.test_pids1,
                                                            dat+args.test_pvecs1, dat+args.test_pids_para1,
                                                            dat+args.test_pvecs_para1, dat+args.test_qids1,
-                                                           dat+args.test_qvecs1, args.art_qrels1, args.top_qrels1,
-                                                           args.hier_qrels1, args.max_seq)
+                                                           dat+args.test_qvecs1, dat+args.art_qrels1, dat+args.top_qrels1,
+                                                           dat+args.hier_qrels1, args.max_seq)
 
     print("\nPagewise benchmark Y1 train")
     print("===========================")
-    all_auc2, euc_auc2, ttest_auc2, all_fm2, all_euc_fm2, ttest_fm2 = eval_all_pairs(args.parapairs2, model, dat + args.test_pids2,
+    all_auc2, euc_auc2, ttest_auc2, all_fm2, all_euc_fm2, ttest_fm2 = eval_all_pairs(dat + args.parapairs2, model, dat + args.test_pids2,
                                                        dat + args.test_pvecs2, dat + args.test_pids_para2,
                                                        dat + args.test_pvecs_para2, dat + args.test_qids2,
                                                        dat + args.test_qvecs2, args.max_seq)
@@ -343,8 +343,8 @@ def main():
     paired_ttest_ari_hq2, ttest_bal_auc2, bal_fm2, bal_euc_fm2, ttest_bal_fm2 = eval_cluster(dat + args.qry_attn_test2, model, dat + args.test_pids2,
                                                            dat + args.test_pvecs2, dat + args.test_pids_para2,
                                                            dat + args.test_pvecs_para2, dat + args.test_qids2,
-                                                           dat + args.test_qvecs2, args.art_qrels2, args.top_qrels2,
-                                                           args.hier_qrels2, args.max_seq)
+                                                           dat + args.test_qvecs2, dat + args.art_qrels2, dat + args.top_qrels2,
+                                                           dat + args.hier_qrels2, args.max_seq)
 
     print("\nbenchmark Y1 test")
     print("==================")

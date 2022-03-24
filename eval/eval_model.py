@@ -333,7 +333,7 @@ def main():
     parser.add_argument('-tq2', '--test_qids2', default="by1test-context-meanall-qids.npy") #change
     parser.add_argument('-tqv2', '--test_qvecs2', default="by1test-context-meanall-qvecs.npy") #change
 
-    parser.add_argument('-mt', '--model_type', default="cats") #cats, scaled, abl
+    parser.add_argument('-mt', '--model_type', default="qs3m") #qs3m, qss, abl
     parser.add_argument('-mp', '--model_path', default="/home/sk1105/sumanta/cats_deploy/model/saved_models/cats_meanall_b32_l0.00001_i3.model") #change
 
     '''

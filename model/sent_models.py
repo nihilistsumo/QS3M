@@ -17,21 +17,21 @@ from model.models import QSSimilarityModel
 
 
 class QS3MSentenceModel(nn.Module):
-    def __init__(self, emb_size, n, model_type, cats_path=None):
+    def __init__(self, emb_size, n, model_type, qs_path=None):
         super(QS3MSentenceModel, self).__init__()
-        if model_type == 'cats':
-            self.cats = QS3M_Attention(emb_size, n)
+        if model_type == 'qs3m':
+            self.qs = QS3M_Attention(emb_size, n)
         elif model_type == 'sent':
-            self.cats = Sent_Attention(emb_size, n)
-        elif model_type == 'fcats':
-            cats_model = QSSimilarityModel(768, 'cats')
-            cats_model.load_state_dict(torch.load(cats_path))
-            self.cats = Sent_FixedQS3M_Attention(emb_size, n, cats_model)
+            self.qs = Sent_Attention(emb_size, n)
+        elif model_type == 'fqs3m':
+            qs3m_model = QSSimilarityModel(768, 'qs3m')
+            qs3m_model.load_state_dict(torch.load(qs_path))
+            self.qs = Sent_FixedQS3M_Attention(emb_size, n, qs3m_model)
         else:
-            self.cats = None
+            self.qs = None
 
     def forward(self, Xq, Xp):
-        self.pair_scores = self.cats(Xq, Xp)
+        self.pair_scores = self.qs(Xq, Xp)
         return self.pair_scores
 
 

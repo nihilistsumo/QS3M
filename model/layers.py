@@ -221,18 +221,14 @@ class QS3M_Attention(nn.Module):
         return y_pred
 
 class Sent_FixedQS3M_Attention(nn.Module):
-    def __init__(self, emb_size, n, cats_model):
+    def __init__(self, emb_size, n, qs_model):
         super(Sent_FixedQS3M_Attention, self).__init__()
-        if torch.cuda.is_available():
-            device = torch.device('cuda:0')
-        else:
-            device = torch.device('cpu')
         self.emb_size = emb_size
         self.n = n
-        self.cats = cats_model
-        self.cats.eval()
-        self.Wa = nn.Parameter(torch.tensor(torch.randn(2*emb_size, self.n), requires_grad=True).to(device))
-        self.va = nn.Parameter(torch.tensor(torch.randn(self.n, 1), requires_grad=True).to(device))
+        self.qs = qs_model
+        self.qs.eval()
+        self.Wa = nn.Parameter(torch.randn(2*emb_size, self.n, requires_grad=True))
+        self.va = nn.Parameter(torch.randn(self.n, 1, requires_grad=True))
         self.tanh = nn.Tanh()
         self.cos = nn.CosineSimilarity()
 
@@ -267,7 +263,7 @@ class Sent_FixedQS3M_Attention(nn.Module):
         self.Xp2dash = torch.sum(torch.mul(self.beta2.reshape(b, 1, seq), self.Xp2), 2)
         X = torch.cat((self.origXq, self.Xp1dash, self.Xp2dash), 1)
 
-        o = self.cats(X)
+        o = self.qs(X)
         o = o.reshape(-1)
         return o
 
@@ -289,11 +285,7 @@ class QSS(nn.Module): # QSS
         self.emb_size = emb_size
         self.n = 32
         self.LL1 = nn.Linear(emb_size, self.n)
-        if torch.cuda.is_available():
-            device = torch.device('cuda:0')
-        else:
-            device = torch.device('cpu')
-        self.A = nn.Parameter(torch.tensor(torch.randn(self.n, emb_size), requires_grad=True).to(device))
+        self.A = nn.Parameter(torch.randn(self.n, emb_size, requires_grad=True))
         self.cos = nn.CosineSimilarity()
 
     def forward(self, X):

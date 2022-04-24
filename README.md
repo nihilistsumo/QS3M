@@ -4,7 +4,7 @@ We propose a Query-Specific Siamese Similarity Metric (QS3M) for query-specific 
 
 ## Quickstart
 
-1. Download the dataset for training and evaluation: https://drive.google.com/drive/folders/1fs3e59jdqBgl-kkmK7yZERVOA_rtXqOm?usp=sharing
+1. Download the dataset for training and evaluation: https://drive.google.com/drive/folders/1MHTzGn0WNmntPzn8jmkxgFYbK6zk0ku0?usp=sharing
 
 2. Clone this repository, move to the directory and add the current directory to the python classpath
 ```

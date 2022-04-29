@@ -4,7 +4,13 @@ We propose a Query-Specific Siamese Similarity Metric (QS3M) for query-specific 
 
 ## Quickstart
 
-1. Download the dataset for training and evaluation: https://drive.google.com/drive/folders/1MHTzGn0WNmntPzn8jmkxgFYbK6zk0ku0?usp=sharing
+1. Download the full dataset for training and evaluation: http://trec-car.cs.unh.edu/appendix/qs3m_dataset_compressed/qs3m_data.tar.gz
+Extract the dataset using tar -xf command. The resulting folder size is 79 GB. It has the pairwise passage data as well as all embeddings used in the paper. Also, it has the pre-trained Sentence-BERT model used to generate the passage embeddings and the QS3M models. From here on, this folder location will be referred as:
+```
+path/to/downloaded/data/
+```
+Alternatively, you can only download the pairwise passage data and generate your own embeddings: http://trec-car.cs.unh.edu/appendix/qs3m_dataset_compressed/qs3m_data_min.tar.gz. 
+The size of this dataset is 2.9 GB after extraction. However, to reproduce our results from the paper, we recommend using the full dataset.
 
 2. Clone this repository, move to the directory and add the current directory to the python classpath
 ```
